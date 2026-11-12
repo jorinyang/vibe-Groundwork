@@ -40,6 +40,8 @@ export type Probe = {
   http: (path: string, init?: RequestInit) => Promise<HttpResult>
   exec: (command: string, cwd?: string) => Promise<ExecResult>
   ensureBoot: () => Promise<BootHandle>
+  /** 关掉整轮共享的启动实例（由运行器在末尾统一调用，判定里不要自己关） */
+  stopBoot: () => Promise<void>
   /** 用「删掉指定环境变量」的环境起项目，观察它是否自己退出（验证缺变量是否快速失败） */
   spawnExpectExit: (opts: { clearKeys: string[]; waitMs: number }) => Promise<SpawnResult>
 }

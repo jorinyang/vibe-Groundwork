@@ -1,6 +1,6 @@
 {
   "name": "vibe-groundwork",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Engineering conformance substrate for vibecoded projects: checks, prescriptions, agent protocol",
   "type": "module",
   "bin": {

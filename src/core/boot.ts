@@ -49,16 +49,43 @@ export async function boot(cfg: VibConfig, root: string): Promise<BootHandle> {
   child.stdout?.on('data', (d) => (log += d.toString()))
   child.stderr?.on('data', (d) => (log += d.toString()))
 
+  /** 等子进程真的退出；超时再强杀，避免留下占用端口的孤儿进程 */
+  const waitExit = (ms: number): Promise<void> =>
+    new Promise((resolvePromise) => {
+      if (child.exitCode !== null) return resolvePromise()
+      const timer = setTimeout(() => {
+        try {
+          child.kill('SIGKILL')
+        } catch {
+          /* noop */
+        }
+        resolvePromise()
+      }, ms)
+      child.once('close', () => {
+        clearTimeout(timer)
+        resolvePromise()
+      })
+    })
+
   const stop = async () => {
+    if (child.exitCode !== null) return
     try {
       if (process.platform === 'win32' && child.pid) {
-        spawn('taskkill', ['/pid', String(child.pid), '/T', '/F'], { windowsHide: true })
+        await new Promise<void>((resolvePromise) => {
+          const killer = spawn('taskkill', ['/pid', String(child.pid), '/T', '/F'], {
+            windowsHide: true,
+            stdio: 'ignore',
+          })
+          killer.on('close', () => resolvePromise())
+          killer.on('error', () => resolvePromise())
+        })
       } else {
         child.kill('SIGTERM')
       }
     } catch {
       /* 忽略清理失败 */
     }
+    await waitExit(2000)
   }
 
   const ok = await waitFor(baseUrl, timeoutMs)

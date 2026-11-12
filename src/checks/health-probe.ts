@@ -69,7 +69,8 @@ export async function run(ctx: CheckContext): Promise<{ status: Status; rules: F
     return { status: 'na', rules }
   }
 
-  try {
+  // 启动实例由运行器统一关闭：判定里自己 stop 会让后续判定拿到已死实例
+  {
     const res = await ctx.probe.http(path)
     const healthy = res.status === 200
     rules.push({
@@ -130,7 +131,5 @@ export async function run(ctx: CheckContext): Promise<{ status: Status; rules: F
 
     const failed = rules.filter((r) => r.status === 'fail')
     return { status: failed.length ? 'fail' : 'pass', rules }
-  } finally {
-    await boot.stop()
   }
 }

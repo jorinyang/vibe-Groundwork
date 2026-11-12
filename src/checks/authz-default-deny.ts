@@ -82,7 +82,8 @@ export async function run(ctx: CheckContext): Promise<{ status: Status; rules: F
     return { status: failedStatic.length ? 'fail' : 'na', rules }
   }
 
-  try {
+  // 启动实例由运行器统一关闭：判定里自己 stop 会让后续判定拿到已死实例
+  {
     // 探针 1：未知路由必须 404，不能是 200
     const unknown = await ctx.probe.http(UNKNOWN_PROBE)
     const unknownOk = unknown.status === 404
@@ -148,7 +149,5 @@ export async function run(ctx: CheckContext): Promise<{ status: Status; rules: F
 
     const failed = rules.filter((r) => r.status === 'fail')
     return { status: failed.length ? 'fail' : 'pass', rules }
-  } finally {
-    await boot.stop()
   }
 }

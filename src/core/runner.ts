@@ -105,6 +105,12 @@ export async function runProject(opts: RunOptions): Promise<RunResult> {
     exec: (command: string, cwd?: string) =>
       execShell(command, cwd ?? target, opts.timeoutMs ?? 180_000),
     ensureBoot,
+    async stopBoot() {
+      if (!booted) return
+      const handle = booted
+      booted = null
+      await handle.stop()
+    },
     async spawnExpectExit({ clearKeys, waitMs }) {
       const started = Date.now()
       if (!config.start?.command) {
@@ -187,7 +193,7 @@ export async function runProject(opts: RunOptions): Promise<RunResult> {
       }
     }
   } finally {
-    await probe.ensureBoot().then((h) => h.stop()).catch(() => {})
+    await probe.stopBoot().catch(() => {})
   }
 
   const passed = outcomes.filter((o) => o.status === 'pass').length
