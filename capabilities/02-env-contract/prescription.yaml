@@ -1,0 +1,24 @@
+id: env-contract.fix
+risk: green
+requires_snapshot: true
+max_attempts: 2
+
+steps:
+  - id: 1
+    when: rule example-exists
+    why: 依据代码里实际引用的变量生成模板，先保证不漏
+    action: generate
+    generator: env-example
+    path: .env.example
+
+  - id: 2
+    when: rule declared-covers-used
+    why: 模板已存在，把代码引用但模板漏掉的变量补进去
+    action: generate
+    generator: env-example-merge
+    path: .env.example
+
+notes:
+  - 生成会把值留空，人需要补注释说明每个变量的含义
+  - 已有 .env.example 不会被覆盖，第 2 步只做追加
+  - startup-validation 没有自动处方，需要在 config 层加缺项即抛错

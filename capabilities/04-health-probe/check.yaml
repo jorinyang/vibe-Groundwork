@@ -1,0 +1,30 @@
+id: health-probe
+title: 健康检查
+since: 0.1.0
+levels: [L2, L3]
+rigor: behavioral
+weight: 2
+
+needs:
+  facts: [routes]
+  config: [healthPath, start.command, ready.url]
+
+probe:
+  boot: true
+  steps:
+    - id: health-endpoint-declared
+      type: fact
+      expect: { routes.healthCandidates: "length >= 1 || config.healthPath != null" }
+    - id: health-returns-200
+      type: http
+      request: { method: GET, path: "${config.healthPath}" }
+      expect: { status: 200 }
+    - id: health-structured
+      type: http
+      expect: { json: "has any of status/ok/healthy" }
+    - id: health-distinguishes-deps
+      type: http
+      expect: { json: "has any of checks/dependencies/db/redis" }
+
+pass_when: all_steps_pass
+prescription: null      # 健康响应结构必须按项目实际依赖设计，不自动生成

@@ -32,6 +32,9 @@ const CODE_EXT = new Set([
 ])
 
 const DDL_RE = /\b(CREATE\s+TABLE|ALTER\s+TABLE|DROP\s+TABLE|CREATE\s+INDEX)\b/i
+/** DDL 只有在数据库执行上下文里才算数，避免把检查器/文档里的 SQL 当建表 */
+const SQL_CONTEXT_RE =
+  /\b(sqlite3|psql|mysql|mongosh|knex|prisma|sequelize|typeorm|pg|better-sqlite3)\b|\.(exec|query|prepare|all|get|run)\(/i
 /** 一次性脚本是否真的动了数据库：DDL、DML，或调用数据库客户端 */
 const SQL_TOUCH_RE = new RegExp(
   [
@@ -101,8 +104,13 @@ export async function collectMigrationFacts(root: string): Promise<MigrationFact
     }
   }
 
+  const isTest = (p: string) =>
+    /(^|\/)(tests?|__tests__|spec|fixtures?|mocks?|examples?|samples?)(\/|$)/i.test(p) ||
+    /\.(test|spec)\.[a-z]+$/i.test(p)
+
   for (const f of codeFiles) {
     const r = rel(root, f)
+    if (isTest(r)) continue
     let text = ''
     try {
       text = await readFile(f, 'utf8')
@@ -110,7 +118,11 @@ export async function collectMigrationFacts(root: string): Promise<MigrationFact
       continue
     }
 
-    if (DDL_RE.test(text)) ddlFiles.push(r)
+    // 只有「真的在跟数据库打交道」的文件才算出 DDL：
+    // 数据库调用、迁移注册表，或执行上下文。否则检查器自己代码里的
+    // 正则字面量会被当成建表语句（自伤）。
+    const inMigrationModule = /migrations?\s*[:=]/i.test(text)
+    if (DDL_RE.test(text) && (SQL_CONTEXT_RE.test(text) || inMigrationModule)) ddlFiles.push(r)
 
     const dirName = r.split('/').slice(0, -1).pop() ?? ''
     const inScriptDir = SCRIPT_DIR_RE.test(dirName)

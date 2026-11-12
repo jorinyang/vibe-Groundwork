@@ -1,0 +1,27 @@
+id: local-fastcheck
+title: 本地快检
+since: 0.1.0
+levels: [L2, L3]
+rigor: behavioral
+weight: 2
+
+needs:
+  facts: [project]
+  config: [fastcheck]
+
+probe:
+  boot: false
+  steps:
+    - id: has-fastcheck
+      type: fact
+      expect: { config.fastcheck: "length >= 1" }
+    - id: deps-installed
+      type: fact
+      expect: { node_modules: exists }        # 不存在则整项判 N/A
+    - id: fastcheck-executes
+      type: command
+      repeat_for: config.fastcheck
+      expect: { exit_code: 0 }
+
+pass_when: all_steps_pass
+prescription: null      # 快检命令必须由人选定，不自动生成

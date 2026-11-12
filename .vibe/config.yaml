@@ -1,0 +1,7 @@
+# 本仓库自己的配置：先用它自己体检自己
+name: "vibe-Groundwork"
+stack: node
+level: L3
+fastcheck:
+  - "node tests/run.mjs"
+envExample: ".env.example"

@@ -1,12 +1,19 @@
 {
   "name": "vibe-check",
-  "version": "0.0.1",
-  "private": true,
+  "version": "0.1.0",
+  "private": false,
   "type": "module",
-  "description": "Engineering conformance checks for vibecoded projects",
-  "bin": { "vibe-check": "./src/cli.ts" },
-  "scripts": {
-    "check": "node src/cli.ts check"
+  "description": "Engineering conformance substrate for vibecoded projects: checks, prescriptions, agent protocol",
+  "bin": {
+    "vibe": "./src/cli.ts",
+    "vibe-mcp": "./src/mcp/server.ts"
   },
-  "engines": { "node": ">=22.6" }
+  "scripts": {
+    "check": "node src/cli.ts check",
+    "list": "node src/cli.ts list",
+    "mcp": "node src/mcp/server.ts",
+    "selfcheck": "node src/cli.ts check --path . --no-behavioral"
+  },
+  "engines": { "node": ">=22.6" },
+  "license": "MIT"
 }

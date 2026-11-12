@@ -1,0 +1,41 @@
+id: authz-default-deny
+title: 权限默认拒绝
+since: 0.1.0
+levels: [L3]
+rigor: adversarial
+weight: 3
+
+needs:
+  facts: [routes]
+  config: [start.command, protectedPath]
+
+probe:
+  boot: true
+  steps:
+    - id: routes-discovered
+      type: fact
+      expect: { routes.total: ">= 1" }
+    - id: auth-mechanism-exists
+      type: fact
+      expect: { routes.guarded: ">= 1 || routes.middleware.length >= 1" }
+    - id: no-blanket-fallback
+      type: fact
+      expect: { routes.hasSpaFallback: false }
+    - id: unknown-route-404
+      type: http
+      request: { method: GET, path: /__vibe_probe_nonexistent__ }
+      expect: { status: 404 }
+    - id: protected-route-denies-anonymous
+      type: http
+      request: { method: GET, path: "${config.protectedPath}" }
+      expect: { status: [401, 403] }
+    - id: protected-route-rejects-bad-token
+      type: http
+      request:
+        method: GET
+        path: "${config.protectedPath}"
+        headers: { Authorization: "Bearer vibe-invalid-token" }
+      expect: { status: [401, 403] }
+
+pass_when: all_steps_pass
+prescription: null      # risk=red，永不自动执行

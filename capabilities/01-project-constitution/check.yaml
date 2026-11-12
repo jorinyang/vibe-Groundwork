@@ -1,0 +1,27 @@
+id: project-constitution
+title: 项目宪法
+since: 0.1.0
+levels: [L1, L2, L3]
+rigor: static
+weight: 2
+
+needs:
+  facts: [project]
+
+probe:
+  steps:
+    - id: agents-file-exists
+      type: fact
+      expect: { project.agents: "!= null" }
+    - id: agents-one-screen
+      type: fact
+      expect: { project.agents.lines: "<= 150" }
+    - id: agents-covers-basics
+      type: fact
+      expect: { project.agents.sections: "contains run, forbidden, layout" }
+    - id: readme-runnable
+      type: fact
+      expect: { project.readme.hasRun: true }
+
+pass_when: all_steps_pass
+prescription: prescription.yaml

@@ -1,0 +1,27 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  conformance:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: 判定器正反测试
+        run: node tests/run.mjs
+      - name: 用自己体检自己
+        run: node src/cli.ts check --path . --no-behavioral --json > selfcheck.json
+      - name: 体检报告留档
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: selfcheck
+          path: selfcheck.json
+      - name: 能力清单必须可枚举
+        run: node src/cli.ts list

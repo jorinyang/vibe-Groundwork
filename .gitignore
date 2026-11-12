@@ -1,5 +1,7 @@
 node_modules/
 dist/
-.vibe/
-.samples/
+# .vibe 里只保留 config.yaml，快照与缓存不进库
+.vibe/*
+!.vibe/config.yaml
 *.log
+.DS_Store

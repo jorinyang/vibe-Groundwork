@@ -1,0 +1,16 @@
+id: project-constitution.fix
+risk: green
+requires_snapshot: true
+max_attempts: 2
+
+steps:
+  - id: 1
+    when: rule agents-file-exists
+    why: 生成一屏以内的 agent 入口，把「怎么跑 / 不许做 / 目录」三件事写上
+    action: generate
+    generator: agents-md
+    path: AGENTS.md
+
+notes:
+  - 生成的是骨架，目录表和项目特有红线需要人补
+  - 已有的 AGENTS.md 不会被覆盖

@@ -1,0 +1,65 @@
+# 机器真源：能力清单、规格版本、级别映射。
+# 判定器据此发现能力；agent 据此知道有哪些规矩。
+version: 0.1.0
+updated: 2026-11-13
+
+levels:
+  L1: 可再生 —— 别人克隆下来能跑，agent 进场能看懂
+  L2: 可部署 —— 能上服务器、能改表、有质量闸门
+  L3: 可运营 —— 权限默认拒绝，出事能定位
+
+capabilities:
+  - id: project-constitution
+    title: 项目宪法
+    since: 0.1.0
+    levels: [L1, L2, L3]
+    rigor: static
+    risk: green
+    dir: capabilities/01-project-constitution
+
+  - id: env-contract
+    title: 环境变量契约
+    since: 0.1.0
+    levels: [L1, L2, L3]
+    rigor: static
+    risk: green
+    dir: capabilities/02-env-contract
+
+  - id: local-fastcheck
+    title: 本地快检
+    since: 0.1.0
+    levels: [L2, L3]
+    rigor: behavioral
+    risk: green
+    dir: capabilities/03-local-fastcheck
+
+  - id: health-probe
+    title: 健康检查
+    since: 0.1.0
+    levels: [L2, L3]
+    rigor: behavioral
+    risk: green
+    dir: capabilities/04-health-probe
+
+  - id: migration-discipline
+    title: 数据迁移纪律
+    since: 0.0.1
+    levels: [L2, L3]
+    rigor: static
+    risk: yellow
+    dir: capabilities/05-migration-discipline
+
+  - id: authz-default-deny
+    title: 权限默认拒绝
+    since: 0.1.0
+    levels: [L3]
+    rigor: adversarial
+    risk: red
+    dir: capabilities/06-authz-default-deny
+
+# 核心判定的可信度门槛
+quality:
+  min_legacy_rigor_score: 7      # 低于此分数说明判定偏静态，易伪造
+  max_false_positive_rate: 0.10  # 在 >=5 个真实项目上测
+  max_local_duration_ms: 30000
+  max_ci_duration_ms: 300000

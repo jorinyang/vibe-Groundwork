@@ -1,0 +1,24 @@
+id: env-contract
+title: 环境变量契约
+since: 0.1.0
+levels: [L1, L2, L3]
+rigor: static
+weight: 2
+
+needs:
+  facts: [env]
+
+probe:
+  steps:
+    - id: example-exists
+      type: fact
+      expect: { env.exampleFile: "!= null" }
+    - id: declared-covers-used
+      type: fact
+      expect: { env.missing: "length == 0" }
+    - id: startup-validation
+      type: fact
+      expect: { env.hasStartupValidation: true }
+
+pass_when: all_steps_pass
+prescription: prescription.yaml
