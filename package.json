@@ -6,6 +6,7 @@
   "bin": {
     "vibe": "bin/vibe.mjs",
     "vibe-check": "bin/vibe.mjs",
+    "vibe-groundwork": "bin/vibe.mjs",
     "vibe-mcp": "bin/vibe-mcp.mjs"
   },
   "files": [
