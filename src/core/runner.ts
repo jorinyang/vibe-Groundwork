@@ -30,7 +30,10 @@ function execShell(command: string, cwd: string, timeoutMs: number): Promise<Exe
     const started = Date.now()
     const shell = process.platform === 'win32' ? 'cmd' : 'sh'
     const flag = process.platform === 'win32' ? '/c' : '-c'
-    const child = spawn(shell, [flag, command], {
+    // Windows 控制台默认 GBK，会把中文报错变成乱码，导致「命令不存在」这类
+    // 判定失效。先切 UTF-8 代码页再执行。
+    const full = process.platform === 'win32' ? `chcp 65001 >nul & ${command}` : command
+    const child = spawn(shell, [flag, full], {
       cwd,
       windowsHide: true,
       env: { ...process.env, CI: '1', NO_COLOR: '1' },

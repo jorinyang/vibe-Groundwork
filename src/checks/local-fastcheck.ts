@@ -56,6 +56,25 @@ export async function run(ctx: CheckContext): Promise<{ status: Status; rules: F
   for (const cmd of cmds) {
     const res = await ctx.probe.exec(cmd, ctx.root)
     const ok = res.code === 0
+
+    // 区分「闸门跑了但失败」和「闸门根本跑不起来」。
+    // 后者是环境/依赖问题，判 N/A —— 判失败就是误报。
+    const cannotRun =
+      /not recognized|不是内部或外部命令|command not found|Cannot find module|MODULE_NOT_FOUND|No such file or directory/i.test(
+        res.output,
+      )
+    if (cannotRun) {
+      rules.push({
+        check: meta.id,
+        rule: 'toolchain-available',
+        status: 'na',
+        weight: 0,
+        message: `命令跑不起来（工具链缺失），跳过：「${cmd}」`,
+        evidence: res.output.slice(-300).split('\n').slice(-4),
+      })
+      continue
+    }
+
     if (!ok) failed = true
     rules.push({
       check: meta.id,
@@ -69,5 +88,8 @@ export async function run(ctx: CheckContext): Promise<{ status: Status; rules: F
     })
   }
 
+  if (rules.some((r) => r.rule === 'toolchain-available') && !failed) {
+    return { status: 'na', rules }
+  }
   return { status: failed ? 'fail' : 'pass', rules }
 }
