@@ -19,7 +19,8 @@ export type ProjectFacts = {
 }
 
 const AGENT_FILES = ['AGENTS.md', 'CLAUDE.md', 'AGENT.md', '.cursorrules']
-const RUN_HINTS = /(npm (run|start|i\b)|yarn|pnpm|node |python |uv |docker compose|docker-compose|make |go run)/i
+const RUN_HINTS =
+  /(npm (run|start|i\b)|yarn|pnpm|node |python|uvicorn|gunicorn|flask run|django|fastapi|uv |poetry|pip |docker compose|docker-compose|make |go run|cargo run|mvn |gradle)/i
 
 async function gitInfo(root: string): Promise<{ hasRepo: boolean; tags: number }> {
   try {

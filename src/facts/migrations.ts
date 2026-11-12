@@ -93,15 +93,15 @@ export async function collectMigrationFacts(root: string): Promise<MigrationFact
     if (basename(f).toLowerCase().endsWith('.sql')) sqlFileCount++
   }
 
-  // 迁移目录：精确到「该文件所在的目录名」
+  // 迁移目录：路径里任意一层命中即算（alembic/versions/xxx 的父层是 versions）
   for (const f of files) {
     const parts = rel(root, f).split('/')
     if (parts.length < 2) continue
-    const dirName = parts[parts.length - 2]
-    if (MIGRATION_DIR_RE.test(dirName)) {
-      const d = parts.slice(0, -1).join('/')
-      if (!migrationDirs.includes(d)) migrationDirs.push(d)
-    }
+    const dirs = parts.slice(0, -1)
+    const idx = dirs.findIndex((s) => MIGRATION_DIR_RE.test(s))
+    if (idx === -1) continue
+    const d = dirs.slice(0, idx + 1).join('/')
+    if (!migrationDirs.includes(d)) migrationDirs.push(d)
   }
 
   const isTest = (p: string) =>

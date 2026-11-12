@@ -102,6 +102,55 @@ app.get('*', (req, res) => res.sendFile('index.html'))
     expectRuleFail: { 'migration-discipline': 'monotonic-order' },
   },
   {
+    name: 'good-python · Flask 风格项目走同一套判定',
+    files: {
+      'AGENTS.md': '# PY\n\n## 怎么跑\nuvicorn app.main:app\n\n## 目录\n| app | 代码 |\n\n## 不许做\n- x\n',
+      'README.md': '# py\n\n```\nuvicorn app.main:app\n```\n',
+      '.env.example': 'DATABASE_URL=\nAPP_SECRET=\n',
+      'pyproject.toml': '[project]\nname = "py-demo"\n',
+      'app/main.py': `import os
+from flask import Flask
+app = Flask(__name__)
+
+REQUIRED = ["DATABASE_URL", "APP_SECRET"]
+for k in REQUIRED:
+    if not os.environ.get(k):
+        raise RuntimeError("missing required env " + k)
+
+def authenticate(req):
+    return bool(req.headers.get("authorization"))
+
+@app.before_request
+def guard():
+    pass
+
+@app.get("/health")
+def health():
+    return {"status": "ok", "checks": {"db": "up"}}
+
+@app.get("/api/users")
+def users():
+    return []
+`,
+      'alembic/versions/001_init.py': `from alembic import op
+import sqlalchemy as sa
+
+def upgrade():
+    op.create_table("t", sa.Column("id", sa.Text))
+`,
+    },
+    expect: {
+      'project-constitution': 'pass',
+      'env-contract': 'pass',
+      'migration-discipline': 'pass',
+      // 行为探针跑不了时，整体只能是 na —— 不许把「没验」说成「通过」
+      'authz-default-deny': 'na',
+    },
+    expectRulePass: {
+      'authz-default-deny': ['auth-mechanism-exists', 'no-blanket-fallback'],
+    },
+  },
+  {
     name: 'na · 纯静态站，不碰数据库',
     files: {
       'AGENTS.md': '# A\n\n## 怎么跑\nopen index.html\n\n## 目录\n\n## 不许做\n',
@@ -138,13 +187,27 @@ for (const c of CASES) {
       problems.push(`${id}: 没有跑这项`)
       continue
     }
-    if (got.status !== want) problems.push(`${id}: 期望 ${want}，实际 ${got.status}`)
+    if (got.status !== want) {
+      problems.push(`${id}: 期望 ${want}，实际 ${got.status}`)
+      for (const r of got.rules.filter((x) => x.status === 'fail')) {
+        problems.push(`    ↳ ${r.rule}: ${r.message}`)
+      }
+    }
   }
 
   for (const [id, rule] of Object.entries(c.expectRuleFail ?? {})) {
     const got = byId.get(id)
     const hit = got?.rules.find((r) => r.rule === rule && r.status === 'fail')
     if (!hit) problems.push(`${id}.${rule}: 期望失败，实际没有`)
+  }
+
+  for (const [id, rules] of Object.entries(c.expectRulePass ?? {})) {
+    const got = byId.get(id)
+    for (const rule of rules) {
+      const hit = got?.rules.find((r) => r.rule === rule)
+      if (!hit) problems.push(`${id}.${rule}: 规则没有出现`)
+      else if (hit.status === 'fail') problems.push(`${id}.${rule}: 期望通过，实际失败 — ${hit.message}`)
+    }
   }
 
   if (problems.length === 0) {

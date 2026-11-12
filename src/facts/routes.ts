@@ -101,14 +101,23 @@ export async function collectRouteFacts(root: string): Promise<RouteFacts> {
     }
   }
 
+  // 去重：express 正则也会匹配到 `@app.get(` 这类装饰器语法
+  const seen = new Set<string>()
+  const deduped = routes.filter((r) => {
+    const k = `${r.method} ${r.path} ${r.file}`
+    if (seen.has(k)) return false
+    seen.add(k)
+    return true
+  })
+
   const protectedSample =
-    routes.find((x) => !HEALTH_RE.test(x.path) && /(admin|api|private|manage|user)/i.test(x.path))?.path ??
-    routes.find((x) => !HEALTH_RE.test(x.path))?.path ??
+    deduped.find((x) => !HEALTH_RE.test(x.path) && /(admin|api|private|manage|user)/i.test(x.path))?.path ??
+    deduped.find((x) => !HEALTH_RE.test(x.path))?.path ??
     null
 
   return {
     framework,
-    routes,
+    routes: deduped,
     guarded,
     middleware: [...middleware],
     healthCandidates,
