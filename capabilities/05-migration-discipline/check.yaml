@@ -1,0 +1,34 @@
+id: migration-discipline
+title: 数据迁移纪律
+since: 0.0.1
+levels: [L2, L3]
+rigor: static          # TODO(C 阶段): 升到 behavioral，真起库验 _migrations 表
+weight: 3
+
+needs:
+  facts: [migrations]
+
+probe:
+  steps:
+    - id: na-database
+      type: fact
+      expect: { hasDatabase: false -> status: na }
+
+    - id: no-adhoc-sql
+      type: fs
+      scan:
+        dirs: [deploy, deploys, scripts, tools, ops, bin]
+        name_pattern: /^(apply|migrate|migration|patch|alter|fix|add|update-schema)[-_.]/i
+        content_pattern: /\b(CREATE|ALTER|DROP)\s+TABLE\b|\b(INSERT\s+INTO|UPDATE\s+\w+\s+SET|DELETE\s+FROM)\b|\b(sqlite3|psql|mysql|mongosh)\b/i
+      expect: { matches: 0 }
+
+    - id: versioned-source
+      type: fact
+      expect: { migrationDirs: ">=1 || inCodeRegistries: >=1" }
+
+    - id: monotonic-order
+      type: fact
+      expect: { migrationNames: "leading numbers ascending in declaration order" }
+
+pass_when: all_steps_pass
+prescription: prescription.yaml

@@ -1,0 +1,12 @@
+{
+  "name": "vibe-check",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "description": "Engineering conformance checks for vibecoded projects",
+  "bin": { "vibe-check": "./src/cli.ts" },
+  "scripts": {
+    "check": "node src/cli.ts check"
+  },
+  "engines": { "node": ">=22.6" }
+}

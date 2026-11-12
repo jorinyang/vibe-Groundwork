@@ -1,0 +1,27 @@
+id: migration-discipline.fix
+risk: yellow                  # 改数据/schema 相关，必须先打快照
+requires_snapshot: true
+max_attempts: 2
+human_gate: false
+
+steps:
+  - id: 1
+    why: 修「声明顺序与序号相反」——运行器按数组顺序执行，全新库会在建表前先改表
+    action: patch-file
+    target: <迁移注册表文件>
+    strategy: sort-array-by-name-number
+    verify: { check: migration-discipline, rule: monotonic-order }
+
+  - id: 2
+    why: 把一次性脚本里的数据变更搬进迁移注册表，仓库才能重现这次变更
+    action: create-file
+    target: <迁移注册表文件>
+    strategy: append-migration-from-script
+    source: <被标记的一次性脚本>
+    verify: { check: migration-discipline, rule: no-adhoc-sql }
+
+rollback: git checkout -- .
+
+notes:
+  - 第 1 步会改变真实执行顺序，执行前必须确认目标库已存在的迁移记录与序号一致
+  - 第 2 步保留原脚本但不删除，删文件留给人工确认
