@@ -16,8 +16,22 @@ const DEP_KEYS = ['checks', 'dependencies', 'deps', 'db', 'database', 'redis', '
 export async function run(ctx: CheckContext): Promise<{ status: Status; rules: Finding[] }> {
   const rules: Finding[] = []
   const candidates = ctx.facts.routes.healthCandidates
-  const configured = ctx.config.healthPath
-  const path = configured ?? candidates[0]
+  // 推断出来的默认路径不算「已声明」，否则这条永远通过
+  const configured = ctx.config.explicitConfig ? ctx.config.healthPath || undefined : undefined
+  const path = candidates[0] ?? configured
+
+  // 没有 HTTP 服务的项目（库、静态站、纯脚本）不该被要求健康端点
+  if (ctx.facts.routes.routes.length === 0 && !configured) {
+    rules.push({
+      check: meta.id,
+      rule: 'na-no-http-server',
+      status: 'na',
+      weight: 0,
+      message: '未发现 HTTP 路由，本能力不适用',
+      evidence: [],
+    })
+    return { status: 'na', rules }
+  }
 
   rules.push({
     check: meta.id,

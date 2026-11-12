@@ -56,6 +56,8 @@ export type VibConfig = {
   /** 本地快检命令 */
   fastcheck: string[]
   envExample: string
+  /** 配置是否来自项目自己的 .vibe/config.yaml（true 时推断值不算「已声明」） */
+  explicitConfig?: boolean
 }
 
 export type ProjectContext = {

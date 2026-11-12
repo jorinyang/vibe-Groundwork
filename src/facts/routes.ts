@@ -30,9 +30,11 @@ const SPA_FALLBACK_RE =
 /** 任何文件里出现的健康端点字面量 */
 const HEALTH_LITERAL_RE =
   /["'`]([^"'`\s]*\/(?:health|healthz|ready|readiness|live|alive|ping))["'`]/gi
-/** 原生 node http / 手写路由：pathname 比对 */
+/** 原生 node http / 手写路由：必须在比较或赋值上下文里，避免匹配到检查器自身的正则源码 */
 const PLAIN_NODE_RE =
-  /(?:pathname|req\.url|request\.url)[^\n]{0,48}?["'`](\/[^"'`\s]{1,80})["'`]/g
+  /(?:pathname|req\.url|request\.url)\s*(?:===|==|!==|!=|\.startsWith\(|\.endsWith\()\s*["'`](\/[^"'`\s]{1,80})["'`]/g
+/** Flask: @app.route('/x') / @bp.route('/x') —— route 不是动词，单独处理 */
+const FLASK_ROUTE_RE = /@(?:app|bp|blueprint|router)\.route\(\s*["']([^"']+)["']/g
 
 export async function collectRouteFacts(root: string): Promise<RouteFacts> {
   const files = (await walk(root)).filter(hasCodeExt)
@@ -73,6 +75,17 @@ export async function collectRouteFacts(root: string): Promise<RouteFacts> {
     while ((hm = HEALTH_LITERAL_RE.exec(txt)) !== null) {
       const p = hm[1]
       if (!healthCandidates.includes(p)) healthCandidates.push(p)
+    }
+
+    FLASK_ROUTE_RE.lastIndex = 0
+    let fm: RegExpExecArray | null
+    while ((fm = FLASK_ROUTE_RE.exec(txt)) !== null) {
+      const p = fm[1]
+      if (!routes.some((x) => x.path === p && x.file === r)) {
+        routes.push({ method: '*', path: p, file: r })
+        framework = framework ?? 'python-web'
+        if (HEALTH_RE.test(p) && !healthCandidates.includes(p)) healthCandidates.push(p)
+      }
     }
 
     PLAIN_NODE_RE.lastIndex = 0

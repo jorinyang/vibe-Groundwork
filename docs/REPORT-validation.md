@@ -14,6 +14,7 @@
 | 4 | `xysw-platform` | Node，无 DB | 服务器快照 |
 | 5 | `sw-ims`（服务器备份副本） | 同 1 | 服务器快照 |
 | 6 | `vibe-Groundwork` | 本仓库自己 | 本地 |
+| 7 | `miguelgrinberg/microblog` | Python / Flask，有迁移目录 | GitHub |
 
 ## 二、结果矩阵
 
@@ -25,8 +26,11 @@
 | xysw-platform | FAIL | FAIL | N/A | N/A | N/A | N/A |
 | sw-ims（备份） | FAIL | FAIL | N/A | FAIL | N/A | N/A |
 | vibe-Groundwork | PASS | N/A | PASS | N/A | N/A | N/A |
+| microblog (Python) | FAIL | FAIL | FAIL | PASS | FAIL | N/A |
 
-**共 36 次判定：5 PASS、13 FAIL、18 N/A、0 ERROR。**
+**共 42 次判定：6 PASS、17 FAIL、19 N/A、0 ERROR。**
+
+Python 项目走的是同一套判定，没有额外适配代码——验证了「栈相关性只在 Facts 层」这个设计。
 
 `N/A` 偏多说明两件事：
 1. 行为判定（健康、权限）需要真实启动命令与就绪地址，样本项目都没配 `.vibe/config.yaml`——这是**使用前提没满足**，不是判定本身不行。

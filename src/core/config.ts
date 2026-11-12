@@ -101,6 +101,7 @@ export async function loadConfig(root: string): Promise<VibConfig> {
 
   const vibTxt = await readText(join(root, '.vibe/config.yaml'))
   if (vibTxt) {
+    cfg.explicitConfig = true
     const parsed = parseYaml(vibTxt) as Record<string, unknown>
     const merged: Record<string, unknown> = { ...cfg, ...parsed }
     // start / ready 是嵌套对象，单独合并，避免被整体覆盖成字符串
@@ -110,6 +111,8 @@ export async function loadConfig(root: string): Promise<VibConfig> {
     if (typeof merged.level === 'string' && /^L[123]$/.test(merged.level)) {
       merged.level = merged.level as Level
     }
+    // 项目自己写了配置却没指定健康路径 → 清空推断值，避免「默认值冒充已声明」
+    if (parsed.healthPath === undefined) merged.healthPath = ''
     cfg = merged as unknown as VibConfig
   }
 
