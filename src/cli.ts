@@ -20,6 +20,21 @@ import { collectEnvFacts } from './facts/env.ts'
 import { collectProjectFacts } from './facts/project.ts'
 import { readText } from './core/util.ts'
 import type { Level, Risk } from './core/types.ts'
+import { VERSION } from './core/version.ts'
+
+const USAGE = `vibe-groundwork ${VERSION}
+
+用法：
+  vibe check   --path <dir> [--profile L1|L2|L3] [--only id[,id]] [--json] [--strict] [--no-behavioral]
+  vibe list
+  vibe explain <id>
+  vibe init    --path <dir> [--level L1|L2|L3]
+  vibe fix     --path <dir> [--apply] [--allow-risk green|yellow|red]
+  vibe --version | --help
+
+级别：${Object.keys(PROFILE_LEVELS).join(' / ')}（L1 可再生 · L2 可部署 · L3 可运营）
+
+默认只报告，不阻断；加 --strict 才在失败时返回非零（CI 用）。`
 
 const REPO_ROOT = dirname(dirname(fileURLToPath(import.meta.url)))
 const CAPS_DIR = join(REPO_ROOT, 'capabilities')
@@ -191,6 +206,14 @@ async function cmdFix(args: Args) {
 
 async function main() {
   const args = parseArgs(process.argv.slice(2))
+  if (args.cmd === '--version' || args.cmd === '-v' || args.cmd === 'version') {
+    console.log(VERSION)
+    process.exit(0)
+  }
+  if (args.cmd === '--help' || args.cmd === '-h' || args.cmd === 'help') {
+    console.log(USAGE)
+    process.exit(0)
+  }
   switch (args.cmd) {
     case 'check':
       return cmdCheck(args)
@@ -203,14 +226,7 @@ async function main() {
     case 'fix':
       return cmdFix(args)
     default:
-      console.error(`用法：
-  vibe check   --path <dir> [--profile L1|L2|L3] [--only id] [--json] [--no-behavioral]
-  vibe list
-  vibe explain <id>
-  vibe init    --path <dir> [--level L2]
-  vibe fix     --path <dir> [--apply] [--allow-risk green|yellow|red]
-
-级别：${Object.keys(PROFILE_LEVELS).join(' / ')}`)
+      console.error(USAGE)
       process.exit(2)
   }
 }

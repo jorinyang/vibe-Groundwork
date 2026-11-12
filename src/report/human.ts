@@ -1,8 +1,7 @@
 /** 人读报告：一屏内看完结论与证据。 */
 import type { CheckOutcome } from '../core/types.ts'
 import type { RunResult } from '../core/runner.ts'
-
-const VERSION = '0.2.0'
+import { VERSION } from '../core/version.ts'
 
 function tag(status: string): string {
   if (status === 'pass') return 'PASS'
