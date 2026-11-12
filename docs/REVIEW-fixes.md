@@ -127,7 +127,7 @@ npm publish        # 包名 vibe-groundwork，已确认未被占用
 |---|---|---|
 | 三项 rigor 仍为 static | ✅ 已处理 | `env-contract` 升 behavioral（实测 YSCOT 缺变量仍启动）；`migration-discipline` 加 `dbPath` 落库探针；`project-constitution` 标记 `core: false`——文档型能力没有运行时行为可验，不计入 rigor 均分 |
 | 健康/权限行为判定未在真实项目跑通 | ✅ 已修 | YSCOT 配好 `.vibe/config.yaml` 后真起了服务：健康端点在生产模式下 404（真问题）、权限对抗探针 6 条全过 |
-| npm registry 发布 | ❌ 未做 | 本机 `npm whoami` 401，无凭据。当前用 `npx github:` 入口，发布命令：`npm login && npm publish` |
+| npm registry 发布 | ✅ 已发布 | `vibe-groundwork@0.2.1`，入口 `npx vibe-groundwork` |
 | 误报率统计 | 部分 | 已按「每条 FAIL 人工复核」记录，但没有跨版本趋势数据 |
 
 ### 行为判定跑通后新增的发现（YSCOT）

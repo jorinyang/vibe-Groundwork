@@ -8,6 +8,7 @@
 
 <p>
   <a href="https://github.com/jorinyang/vibe-Groundwork/releases"><img src="https://img.shields.io/github/v/release/jorinyang/vibe-Groundwork?style=flat-square&color=CBF74E" alt="Release" height="20"></a>
+  <a href="https://www.npmjs.com/package/vibe-groundwork"><img src="https://img.shields.io/npm/v/vibe-groundwork?style=flat-square&color=CBF74E" alt="npm" height="20"></a>
   <a href="https://nodejs.org/"><img src="https://img.shields.io/badge/Node-22.6+-339933?style=flat-square&logo=node.js&logoColor=white" alt="Node 22.6+" height="20"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-3355FF?style=flat-square" alt="MIT License" height="20"></a>
   <a href="#一行跑"><img src="https://img.shields.io/badge/npx-一行跑-CBF74E?style=flat-square" alt="npx" height="20"></a>
@@ -24,8 +25,31 @@ vibe-Groundwork 是一个面向 vibecoding 项目的 **工程化验收底座**�
 - **处方**：每条失败都对应可执行动作，agent 能直接照做；
 - **协议**：`AGENTS.md` + MCP 三工具，agent 能自己扫、自己修、自己复验。
 
-> 一行跑：`npx github:jorinyang/vibe-Groundwork check --path .`  
 > Node 22.6+ · 零运行时依赖 · **默认只报告不阻断** · 可接 CI 门禁
+
+---
+
+## 一行跑
+
+```bash
+npx vibe-groundwork check --path .
+```
+
+不想走 npm 也可以直接从仓库跑：
+
+```bash
+npx github:jorinyang/vibe-Groundwork check --path .
+```
+
+或者 clone 下来：
+
+```bash
+git clone https://github.com/jorinyang/vibe-Groundwork
+cd vibe-Groundwork && npm ci && npm run build
+node bin/vibe.mjs check --path <你的项目>
+```
+
+**默认不会因为失败返回非零** —— 第一次先看清问题；要当门禁再加 `--strict`。
 
 ---
 
@@ -237,7 +261,7 @@ vibe-Groundwork/
 - [x] N/A 细分「不适用 / 待配置」+ 配置指引
 - [x] 行为判定跑通（env 缺变量快速失败、权限对抗探针、健康端点）
 - [x] 9 个真实项目、跨 Node / Python / Go / Ruby / TS 验证
-- [ ] 发布到 npm registry（当前用 `npx github:` 入口）
+- [x] 发布到 npm registry（`npx vibe-groundwork`）
 - [ ] 非 SQLite 数据库的迁移落库探针
 - [ ] 误报率的时间趋势（按版本对比）
 - [ ] 更多语言 Facts 适配器（Java / C# / PHP）
@@ -248,6 +272,7 @@ vibe-Groundwork/
 
 | 时间 | 内容 |
 | --- | --- |
+| **v0.2.1** | 发布到 npm registry（`npx vibe-groundwork`）；README 补「一行跑」入口 |
 | **v0.2.0** | 七项能力（新增部署纪律）；N/A 细分与配置指引；默认非阻断 + `--strict`；行为判定跑通；`npx` 一行跑；样本扩到 9 个项目跨 5 种技术栈 |
 | **v0.1.0** | 六项能力；Facts/Checks 分层；处方闭环与风险闸门；MCP server；CI 门禁 |
 
