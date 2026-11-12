@@ -23,7 +23,7 @@ const DECORATOR_RE = new RegExp(
 )
 const HEALTH_RE = /\/(health|healthz|ready|readiness|live|alive|ping)\b/i
 const AUTH_HINT_RE =
-  /\b(requireAuth|requireLogin|requireUser|authenticate|isAuthenticated|authGuard|verifyToken|verifyJwt|jwtMiddleware|ensureAuth|loginRequired|sessionUser|publicUser|currentUser|getSession|readSession|verifySession|login_required|require_login|auth_required|jwt_required|current_user)\b|req\.user\s*=|preHandler|preValidation/
+  /\b(requireAuth|requireLogin|requireUser|requireTeacher|getTeacher|setTeacherCookie|authenticate|isAuthenticated|authGuard|verifyToken|verifyJwt|jwtMiddleware|ensureAuth|loginRequired|sessionUser|publicUser|currentUser|getSession|readSession|verifySession|login_required|require_login|auth_required|jwt_required|current_user|AUTH_REQUIRED|authRequired)\b|req\.user\s*=|preHandler|preValidation/
 const MIDDLEWARE_RE = /\b(?:app|router|server)\.use\(\s*([A-Za-z_$][\w$]*)/g
 const SPA_FALLBACK_RE =
   /\.get\(\s*["'`]\*["'`]|app\.use\(\s*\(\s*(?:req|request)\s*,\s*(?:res|response)\s*\)\s*=>[^)]*sendFile|sendFile\([^)]*index\.html|setNotFoundHandler\s*\([\s\S]{0,200}?(?:sendFile\s*\(|index\.html)/
@@ -32,7 +32,7 @@ const HEALTH_LITERAL_RE =
   /["'`]([^"'`\s]*\/(?:health|healthz|ready|readiness|live|alive|ping))["'`]/gi
 /** 原生 node http / 手写路由：必须在比较或赋值上下文里，避免匹配到检查器自身的正则源码 */
 const PLAIN_NODE_RE =
-  /(?:pathname|req\.url|request\.url)\s*(?:===|==|!==|!=|\.startsWith\(|\.endsWith\()\s*["'`](\/[^"'`\s]{1,80})["'`]/g
+  /(?:pathname|req\.url|request\.url|\bp)\s*(?:===|==|!==|!=|\.startsWith\(|\.endsWith\()\s*["'`](\/[^"'`\s]{1,80})["'`]/g
 /** Flask: @app.route('/x') / @bp.route('/x') —— route 不是动词，单独处理 */
 const FLASK_ROUTE_RE = /@(?:app|bp|blueprint|router)\.route\(\s*["']([^"']+)["']/g
 

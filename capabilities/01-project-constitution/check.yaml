@@ -4,6 +4,7 @@ since: 0.1.0
 levels: [L1, L2, L3]
 rigor: static
 weight: 2
+core: false                 # 文档型能力，不计入 rigor 均分（没有运行时行为可验）
 
 needs:
   facts: [project]

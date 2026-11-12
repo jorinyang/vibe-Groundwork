@@ -2,13 +2,15 @@ id: env-contract
 title: 环境变量契约
 since: 0.1.0
 levels: [L1, L2, L3]
-rigor: static
+rigor: behavioral
 weight: 2
 
 needs:
   facts: [env]
+  config: [start.command]
 
 probe:
+  boot: true
   steps:
     - id: example-exists
       type: fact
@@ -19,6 +21,10 @@ probe:
     - id: startup-validation
       type: fact
       expect: { env.hasStartupValidation: true }
+    - id: fails-fast-on-missing-env
+      type: behavioral
+      how: 删掉模板声明的全部变量后再启动一次
+      expect: { exited: true, exit_code: "!= 0" }
 
 pass_when: all_steps_pass
 prescription: prescription.yaml

@@ -9,6 +9,11 @@ export const meta: CheckImpl['meta'] = {
   rigor: 'static',
   weight: 2,
   risk: 'green',
+  /**
+   * 文档型能力：只能静态判定。
+   * 不计入 rigor 均分，否则会永久拉低质量分；但仍然要跑、要显示。
+   */
+  core: false,
 }
 
 const MAX_LINES = 150

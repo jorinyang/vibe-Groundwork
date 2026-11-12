@@ -171,12 +171,19 @@ export function renderConfig(cfg: VibConfig): string {
     lines.push('start:')
     lines.push(`  command: "${cfg.start.command}"`)
     if (cfg.start.cwd) lines.push(`  cwd: "${cfg.start.cwd}"`)
+    const envs = cfg.start.env ?? {}
+    const keys = Object.keys(envs)
+    if (keys.length) {
+      lines.push('  env:')
+      for (const k of keys) lines.push(`    ${k}: "${envs[k]}"`)
+    }
   }
   if (cfg.ready) {
     lines.push('ready:')
     lines.push(`  url: "${cfg.ready.url}"`)
     lines.push(`  timeoutMs: ${cfg.ready.timeoutMs}`)
   }
+  if (cfg.dbPath) lines.push(`dbPath: "${cfg.dbPath}"`)
   lines.push(`healthPath: "${cfg.healthPath ?? '/health'}"`)
   if (cfg.protectedPath) lines.push(`protectedPath: "${cfg.protectedPath}"`)
   lines.push('fastcheck:')

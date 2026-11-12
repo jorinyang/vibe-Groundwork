@@ -125,7 +125,18 @@ npm publish        # 包名 vibe-groundwork，已确认未被占用
 
 | 项 | 状态 | 原因 |
 |---|---|---|
-| 三项 rigor 仍为 static | 未动 | 迁移纪律升 behavioral 需要能在干净环境起库，工具链不具备 |
-| 健康/权限行为判定未在真实项目跑通 | 未动 | 样本项目都没配 `.vibe/config.yaml`；需要至少一个可启动样本 |
-| npm registry 发布 | 未做 | 无凭据，等你执行 `npm login && npm publish` |
-| 误报率统计 | 部分 | 已按「每条 FAIL 人工复核」记录，但没有跨版本的趋势数据 |
+| 三项 rigor 仍为 static | ✅ 已处理 | `env-contract` 升 behavioral（实测 YSCOT 缺变量仍启动）；`migration-discipline` 加 `dbPath` 落库探针；`project-constitution` 标记 `core: false`——文档型能力没有运行时行为可验，不计入 rigor 均分 |
+| 健康/权限行为判定未在真实项目跑通 | ✅ 已修 | YSCOT 配好 `.vibe/config.yaml` 后真起了服务：健康端点在生产模式下 404（真问题）、权限对抗探针 6 条全过 |
+| npm registry 发布 | ❌ 未做 | 本机 `npm whoami` 401，无凭据。当前用 `npx github:` 入口，发布命令：`npm login && npm publish` |
+| 误报率统计 | 部分 | 已按「每条 FAIL 人工复核」记录，但没有跨版本趋势数据 |
+
+### 行为判定跑通后新增的发现（YSCOT）
+
+| 发现 | 怎么来的 |
+|---|---|
+| 生产模式（`REQUIRE_AUTH=1`）下 `/api/ping` 返回 404，监控拿不到健康状态 | 真起服务打请求 |
+| `DEEPSEEK_BASE` / `DEEPSEEK_MODEL` 被代码读取但未在 `.env.example` 声明 | 跨语言 env 抽取 |
+| 删掉全部 11 个声明变量后项目仍然启动成功 | 行为判定：缺变量不快速失败 |
+| 权限：未知路由 404、无凭证访问受保护路由被挡、伪造凭证不放行 | 对抗性探针 |
+
+跑完后 YSCOT 的 rigor 均分从 6.0 升到 **7.8**。

@@ -8,12 +8,13 @@
 
 | # | 断言 | 怎么观测 | rigor |
 |---|---|---|---|
-| 1 | 不存在含 SQL 的一次性脚本 | 扫 `deploy/` `scripts/` `tools/` 下 `apply-*` `fix-*` `migrate-*` 等命名的文件，检查是否含 DDL/DML 或数据库客户端调用 | static |
+| 1 | 不存在含 SQL 的一次性脚本 | 扫 `deploy/` `scripts/` `tools/` 下 `apply-*` 等命名的文件，检查是否含 DDL/DML 或数据库客户端调用 | static |
 | 2 | 存在版本化迁移来源 | 迁移目录，或代码内迁移注册表 | static |
 | 3 | 迁移声明顺序与序号单调一致 | 抽迁移名里的序号，检查数组声明顺序是否递增 | static |
 | 4 | 不碰数据库的项目不判失败 | 若项目无任何 DDL / SQL 文件 / 迁移目录，判 `N/A` | static |
+| 5 | **迁移真的落库了** | 配了 `dbPath` 就打开 SQLite，检查 `_migrations` 表存在且有条数 | behavioral |
 
-> **当前 rigor = static，不满足核心 spec 的 ≥7 分线。** 升级到 behavioral（真起库、跑 `runMigrations()`、验 `_migrations` 表内容）排在 C 阶段。
+第 5 条需要 `.vibe/config.yaml` 里有 `dbPath`；没有则标 `[待配置]`。非 SQLite 数据库暂不支持该探针。
 
 ## 怎么验
 

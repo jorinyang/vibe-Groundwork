@@ -11,6 +11,11 @@
 | 1 | 存在环境变量模板 | 根目录有 `.env.example` / `.env.sample` | static |
 | 2 | 模板覆盖代码引用 | 代码里 `process.env.X` / `os.environ["X"]` 的变量全部出现在模板 | static |
 | 3 | 启动时校验 | 存在缺变量即抛错的校验入口 | static |
+| 4 | **缺变量会快速失败** | 删掉模板声明的全部变量再启动一次，进程应在超时前以非零码退出 | behavioral |
+
+第 4 条需要 `.vibe/config.yaml` 里有 `start.command`；没有则标 `[待配置]` 并给出配置片段。
+
+支持读取写法的语言：JS/TS、Python、Go、Ruby、Java、Rust。其他语言会标 `[待配置]`，不会静默判通过。
 
 ## 怎么验
 

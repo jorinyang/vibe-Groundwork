@@ -27,11 +27,21 @@ export type ExecResult = {
   durationMs: number
 }
 
+/** 起一个长驻进程跑一段时间，看它会不会自己退出 */
+export type SpawnResult = {
+  exited: boolean
+  code: number | null
+  log: string
+  durationMs: number
+}
+
 export type Probe = {
   /** 相对于项目根的就绪地址；未就绪时抛错，由上层转成 na */
   http: (path: string, init?: RequestInit) => Promise<HttpResult>
   exec: (command: string, cwd?: string) => Promise<ExecResult>
   ensureBoot: () => Promise<BootHandle>
+  /** 用「删掉指定环境变量」的环境起项目，观察它是否自己退出（验证缺变量是否快速失败） */
+  spawnExpectExit: (opts: { clearKeys: string[]; waitMs: number }) => Promise<SpawnResult>
 }
 
 export type CheckContext = {
@@ -49,6 +59,8 @@ export type CheckImpl = {
     rigor: 'existence' | 'static' | 'behavioral' | 'adversarial'
     weight: number
     risk: 'green' | 'yellow' | 'red'
+    /** 是否计入 rigor 均分；文档型能力设 false */
+    core?: boolean
   }
   run: (ctx: CheckContext) => Promise<{ status: import('./types.ts').Status; rules: import('./types.ts').Finding[] }>
 }

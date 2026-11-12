@@ -39,11 +39,26 @@ const EXAMPLE_DIRS = ['', 'deploy/', 'ops/', 'infra/', 'docker/', 'config/', 'co
  * 把它们算进来会让契约永远对不上，是典型误报来源。
  */
 const TOOLING_DIR_RE = /^(\.?deploy[a-z]*|scripts?|tools?|ops|bin|ci|\.github)\//i
+
+/**
+ * 第三方/压缩产物里的 process.env 不算应用契约：
+ * 那是别人库里的读取，改不了也不该管。
+ */
+function isVendored(relPath: string): boolean {
+  return (
+    /\.(min|umd|bundle|chunk)\.[cm]?jsx?$/i.test(relPath) ||
+    /(^|\/)(vendors?|third[-_]?party|assets\/lib|node_modules)\//i.test(relPath)
+  )
+}
 const EXAMPLE_LINE = /^\s*([A-Z][A-Z0-9_]{1,})\s*=/gm
 const VALIDATION_HINTS =
   /(requiredEnv|missing\s*[:=]|Missing required env|必须(配置|设置)?环境变量|envSchema|zod.*process\.env|throw new Error\([^)]*env)/i
 
-export async function collectEnvFacts(root: string, exampleName = '.env.example'): Promise<EnvFacts> {
+export async function collectEnvFacts(
+  root: string,
+  exampleName = '.env.example',
+  ignorePaths: string[] = [],
+): Promise<EnvFacts> {
   // 1) 声明的变量
   let exampleFile: string | null = null
   let declared: string[] = []
@@ -72,6 +87,8 @@ export async function collectEnvFacts(root: string, exampleName = '.env.example'
   for (const f of files) {
     const r = rel(root, f)
     if (TOOLING_DIR_RE.test(r) || isTestPath(r)) continue
+    if (isVendored(r)) continue
+    if (ignorePaths.some((p) => r.startsWith(p))) continue
     const txt = await readText(f)
     if (!txt) continue
     for (const pat of USAGE_PATTERNS) {

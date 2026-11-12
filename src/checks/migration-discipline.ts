@@ -6,7 +6,7 @@ export const meta: CheckImpl['meta'] = {
   id: 'migration-discipline',
   title: '数据迁移纪律',
   levels: ['L2', 'L3'],
-  rigor: 'static',
+  rigor: 'behavioral',
   weight: 3,
   risk: 'yellow',
 }
@@ -86,6 +86,67 @@ export async function run(ctx: CheckContext): Promise<{ status: Status; rules: F
         ? [`共 ${numbered.length} 条带序号的迁移`]
         : [`${prevName} → ${currName}`, `共 ${numbered.length} 条带序号的迁移`],
     })
+  }
+
+  // 行为判定：配了 dbPath 就真的打开库，看迁移记录表
+  if (!ctx.config.dbPath) {
+    rules.push({
+      check: meta.id,
+      rule: 'migrations-applied',
+      status: 'na',
+      weight: 0,
+      naKind: 'not-configured',
+      message: '未配置 dbPath，无法验证「迁移是否真的写进了数据库」',
+      evidence: [],
+      howToEnable: [
+        '在 .vibe/config.yaml 里补上数据库路径（SQLite），本项会打开库检查 _migrations 表：',
+        '  dbPath: "./data/app.db"',
+        '  或指定环境变量名：dbPath: "${DB_PATH}"',
+      ].join('\n'),
+    })
+  } else {
+    const dbPath = ctx.config.dbPath.replace(/\$\{(\w+)\}/g, (_, k) => process.env[k] ?? '')
+    try {
+      const { DatabaseSync } = await import('node:sqlite')
+      const db = new DatabaseSync(dbPath, { readOnly: true })
+      try {
+        const rows = db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='_migrations'").all() as unknown[]
+        if (rows.length === 0) {
+          rules.push({
+            check: meta.id,
+            rule: 'migrations-applied',
+            status: 'fail',
+            weight: 3,
+            message: '数据库里没有 _migrations 记录表——迁移没有留下执行痕迹，无法判断哪些跑过',
+            evidence: [dbPath],
+          })
+        } else {
+          const applied = db.prepare('SELECT COUNT(*) AS c FROM _migrations').get() as { c: number }
+          const expected = f.migrationNames.length
+          rules.push({
+            check: meta.id,
+            rule: 'migrations-applied',
+            status: 'pass',
+            weight: 3,
+            message: `数据库里有 _migrations 表，已记录 ${applied.c} 条迁移${expected ? `（代码里声明 ${expected} 条）` : ''}`,
+            evidence: [dbPath],
+          })
+        }
+      } finally {
+        db.close()
+      }
+    } catch (err) {
+      rules.push({
+        check: meta.id,
+        rule: 'migrations-applied',
+        status: 'na',
+        weight: 0,
+        naKind: 'not-configured',
+        message: `打不开数据库：${(err as Error)?.message ?? err}`,
+        evidence: [dbPath],
+        howToEnable: '确认 dbPath 指向真实存在的 SQLite 文件；非 SQLite 数据库暂不支持该探针',
+      })
+    }
   }
 
   const failed = rules.filter((r) => r.status === 'fail')

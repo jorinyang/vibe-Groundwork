@@ -70,7 +70,7 @@ export async function runProject(opts: RunOptions): Promise<RunResult> {
 
   const facts: FactsBag = {
     project: await collectProjectFacts(target),
-    env: await collectEnvFacts(target, config.envExample),
+    env: await collectEnvFacts(target, config.envExample, config.ignorePaths ?? []),
     routes: await collectRouteFacts(target),
     migrations: await collectMigrationFacts(target),
     deploy: await collectDeployFacts(target),
@@ -105,6 +105,53 @@ export async function runProject(opts: RunOptions): Promise<RunResult> {
     exec: (command: string, cwd?: string) =>
       execShell(command, cwd ?? target, opts.timeoutMs ?? 180_000),
     ensureBoot,
+    async spawnExpectExit({ clearKeys, waitMs }) {
+      const started = Date.now()
+      if (!config.start?.command) {
+        return { exited: false, code: null, log: '未配置启动命令', durationMs: 0 }
+      }
+      const cwd = config.start.cwd ? `${target}/${config.start.cwd}` : target
+      const shell = process.platform === 'win32' ? 'cmd' : 'sh'
+      const flag = process.platform === 'win32' ? '/c' : '-c'
+      const env: Record<string, string | undefined> = {
+        ...process.env,
+        NODE_ENV: 'test',
+        VIBE_CHECK: '1',
+        ...(config.start.env ?? {}),
+      }
+      // 只删掉被测的变量，其余保持不变（否则会破坏 PATH 等运行基础）
+      for (const k of clearKeys) delete env[k]
+      const child = spawn(shell, [flag, config.start.command], {
+        cwd,
+        env,
+        stdio: ['ignore', 'pipe', 'pipe'],
+        windowsHide: true,
+      })
+      let log = ''
+      child.stdout?.on('data', (d) => (log += d.toString()))
+      child.stderr?.on('data', (d) => (log += d.toString()))
+      const result = await new Promise<{ exited: boolean; code: number | null }>((resolvePromise) => {
+        const timer = setTimeout(() => resolvePromise({ exited: false, code: null }), waitMs)
+        child.on('close', (code) => {
+          clearTimeout(timer)
+          resolvePromise({ exited: true, code })
+        })
+        child.on('error', () => {
+          clearTimeout(timer)
+          resolvePromise({ exited: true, code: 127 })
+        })
+      })
+      try {
+        if (process.platform === 'win32' && child.pid) {
+          spawn('taskkill', ['/pid', String(child.pid), '/T', '/F'], { windowsHide: true })
+        } else {
+          child.kill('SIGKILL')
+        }
+      } catch {
+        /* noop */
+      }
+      return { ...result, log, durationMs: Date.now() - started }
+    },
   }
 
   const checks = selectChecks((opts.profile ?? config.level ?? 'L2') as Level, opts.only)
@@ -152,7 +199,10 @@ export async function runProject(opts: RunOptions): Promise<RunResult> {
   const error = outcomes.filter((o) => o.status === 'error').length
   const failedRules = outcomes.flatMap((o) => o.rules).filter((r) => r.status === 'fail').length
 
-  const scored = outcomes.filter((o) => o.status !== 'na' && o.status !== 'error')
+  // 只统计「核心能力」的 rigor：文档型能力（core:false）计入显示但不进质量分
+  const scored = outcomes.filter(
+    (o) => o.status !== 'na' && o.status !== 'error' && o.meta.core !== false,
+  )
   const rigorScore =
     scored.length === 0
       ? 0

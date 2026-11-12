@@ -40,7 +40,7 @@ export async function boot(cfg: VibConfig, root: string): Promise<BootHandle> {
 
   const child = spawn(shell, [flag, cfg.start.command], {
     cwd,
-    env: { ...process.env, NODE_ENV: 'test', VIBE_CHECK: '1' },
+    env: { ...process.env, NODE_ENV: 'test', VIBE_CHECK: '1', ...(cfg.start.env ?? {}) },
     stdio: ['ignore', 'pipe', 'pipe'],
     windowsHide: true,
   })

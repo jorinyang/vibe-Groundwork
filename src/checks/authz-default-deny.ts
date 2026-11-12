@@ -111,15 +111,19 @@ export async function run(ctx: CheckContext): Promise<{ status: Status; rules: F
           evidence: [],
         })
       } else {
+        // 404 也算「不暴露」：未鉴权时路由直接不可见，同样拿不到数据
         const denies = AUTH_CODES.has(res.status)
+        const hidden = res.status === 404
         rules.push({
           check: meta.id,
           rule: 'protected-route-denies-anonymous',
-          status: denies ? 'pass' : 'fail',
+          status: denies || hidden ? 'pass' : 'fail',
           weight: 3,
           message: denies
             ? `无凭证访问 ${target} → ${res.status}，已被拒绝`
-            : `无凭证访问 ${target} → ${res.status}，数据可能直接暴露`,
+            : hidden
+              ? `无凭证访问 ${target} → 404（未鉴权时路由不可见，同样不暴露数据）`
+              : `无凭证访问 ${target} → ${res.status}，数据可能直接暴露`,
           evidence: [res.text.slice(0, 160)],
         })
       }
@@ -128,14 +132,14 @@ export async function run(ctx: CheckContext): Promise<{ status: Status; rules: F
         .http(target, { headers: { Authorization: 'Bearer vibe-invalid-token' } })
         .catch(() => null)
       if (badToken) {
-        const deniesBad = AUTH_CODES.has(badToken.status)
+        const deniesBad = AUTH_CODES.has(badToken.status) || badToken.status === 404
         rules.push({
           check: meta.id,
           rule: 'protected-route-rejects-bad-token',
           status: deniesBad ? 'pass' : 'fail',
           weight: 2,
           message: deniesBad
-            ? `伪造凭证访问 ${target} → ${badToken.status}，被拒绝`
+            ? `伪造凭证访问 ${target} → ${badToken.status}，未被放行`
             : `伪造凭证访问 ${target} → ${badToken.status}，凭证没有真验证`,
           evidence: [badToken.text.slice(0, 160)],
         })

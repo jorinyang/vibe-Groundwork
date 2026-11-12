@@ -81,6 +81,22 @@ export async function run(ctx: CheckContext): Promise<{ status: Status; rules: F
       evidence: [res.text.slice(0, 200)],
     })
 
+    if (!healthy) {
+      // 端点都拿不到 200，就没资格评价响应结构——那是另一层的事
+      rules.push({
+        check: meta.id,
+        rule: 'health-structured',
+        status: 'na',
+        weight: 0,
+        naKind: 'not-configured',
+        message: '健康端点未返回 200，跳过响应结构判定',
+        evidence: [res.text.slice(0, 160)],
+        howToEnable: '先让健康端点在当前运行模式下可访问（检查是否被鉴权中间件挡住）',
+      })
+      const failed = rules.filter((r) => r.status === 'fail')
+      return { status: failed.length ? 'fail' : 'pass', rules }
+    }
+
     let body: Record<string, unknown> | null = null
     if (res.json && typeof res.json === 'object') body = res.json as Record<string, unknown>
 
@@ -97,14 +113,18 @@ export async function run(ctx: CheckContext): Promise<{ status: Status; rules: F
     })
 
     const depKey = body ? DEP_KEYS.find((k) => k in body) : undefined
+    const hasDeps = ctx.facts.migrations.hasDatabase
     rules.push({
       check: meta.id,
       rule: 'health-distinguishes-deps',
-      status: depKey ? 'pass' : 'fail',
+      status: !hasDeps ? 'na' : depKey ? 'pass' : 'fail',
       weight: 2,
-      message: depKey
-        ? `健康响应含依赖信息（${depKey}），能区分「进程活着」和「依赖可用」`
-        : '健康响应只有「活着」，挂掉的数据库不会被发现',
+      naKind: !hasDeps ? 'not-applicable' : undefined,
+      message: !hasDeps
+        ? '项目没有数据库/外部依赖，健康检查不需要区分依赖'
+        : depKey
+          ? `健康响应含依赖信息（${depKey}），能区分「进程活着」和「依赖可用」`
+          : '健康响应只有「活着」，挂掉的数据库不会被发现',
       evidence: [],
     })
 

@@ -7,7 +7,7 @@ export const meta: CheckImpl['meta'] = {
   id: 'env-contract',
   title: '环境变量契约',
   levels: ['L1', 'L2', 'L3'],
-  rigor: 'static',
+  rigor: 'behavioral',
   weight: 2,
   risk: 'green',
 }
@@ -94,6 +94,61 @@ export async function run(ctx: CheckContext): Promise<{ status: Status; rules: F
       message: `有 ${f.unused.length} 个变量声明了但代码里没读到（可能是预留）`,
       evidence: f.unused.slice(0, 8),
     })
+  }
+
+  // 行为判定：把声明过的变量全部拿掉，项目应该立刻失败退出
+  const clearKeys = f.declared.length ? f.declared : []
+  const canProbe = !!ctx.config.start?.command && clearKeys.length > 0
+  if (!canProbe) {
+    rules.push({
+      check: meta.id,
+      rule: 'fails-fast-on-missing-env',
+      status: 'na',
+      weight: 0,
+      naKind: 'not-configured',
+      message: ctx.config.start?.command
+        ? '模板里没有声明任何变量，无法做「缺变量是否快速失败」的验证'
+        : '未配置启动命令，无法做行为验证',
+      evidence: [],
+      howToEnable: [
+        '在 .vibe/config.yaml 里补上启动配置，本项会真的删掉变量再启动一次：',
+        '  start:',
+        '    command: "npm start"',
+        '  ready:',
+        '    url: "http://127.0.0.1:3000/"',
+      ].join('\n'),
+    })
+  } else {
+    // 先跑「缺变量」的那次，此时端口是空的，避免和后面正常启动抢端口
+    const res = await ctx.probe.spawnExpectExit({ clearKeys, waitMs: 8000 })
+    const portConflict = /EADDRINUSE|address already in use|端口.*占用/i.test(res.log)
+    if (portConflict) {
+      rules.push({
+        check: meta.id,
+        rule: 'fails-fast-on-missing-env',
+        status: 'na',
+        weight: 0,
+        naKind: 'not-configured',
+        message: '启动时端口被占用，无法判断是「缺变量退出」还是「端口冲突退出」',
+        evidence: res.log.slice(-300).split('\n').slice(-4),
+        howToEnable: '先停掉占用该端口的进程，或改 .vibe/config.yaml 里的 PORT',
+      })
+    } else {
+      const fastFail = res.exited && res.code !== 0 && res.code !== null
+      const stillAlive = !res.exited
+      rules.push({
+        check: meta.id,
+        rule: 'fails-fast-on-missing-env',
+        status: fastFail ? 'pass' : 'fail',
+        weight: 3,
+        message: fastFail
+          ? `删掉 ${clearKeys.length} 个声明变量后，项目在 ${Math.round(res.durationMs / 100) / 10}s 内以非零码退出——缺变量会快速失败`
+          : stillAlive
+            ? `删掉 ${clearKeys.length} 个声明变量后，项目仍然启动成功——环境变量没有启动校验，问题会推迟到运行时才炸`
+            : `删掉变量后项目退出码为 ${res.code}（期望非零）`,
+        evidence: res.log.slice(-400).split('\n').slice(-6),
+      })
+    }
   }
 
   const failed = rules.filter((r) => r.status === 'fail')

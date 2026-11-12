@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 430" width="1200" height="430" role="img" aria-label="vibe check 一次真实运行：七项能力里三项未通过、三项通过、一项待配置">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0A1A15"/>
+      <stop offset="100%" stop-color="#12241D"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="430" rx="20" fill="url(#bg)"/>
+  <rect x="1" y="1" width="1198" height="428" rx="20" fill="none" stroke="#24443A"/>
+
+  <!-- titlebar -->
+  <circle cx="34" cy="32" r="7" fill="#D96A6A"/>
+  <circle cx="58" cy="32" r="7" fill="#E8A33D"/>
+  <circle cx="82" cy="32" r="7" fill="#CBF74E"/>
+  <text x="110" y="38" font-family="ui-monospace,SFMono-Regular,Menlo,monospace" font-size="15" fill="#7E9C8F">vibe check --path .</text>
+
+  <!-- row 1 -->
+  <text x="34" y="96" font-family="ui-monospace,monospace" font-size="18" fill="#6F8C80">vibe-check 0.2.0 · 目标  ./YSCOT · 栈=node 级别=L3</text>
+
+  <!-- row 2: FAIL -->
+  <rect x="30" y="120" width="70" height="26" rx="6" fill="#3A1E1E"/>
+  <text x="44" y="139" font-family="ui-monospace,monospace" font-size="15" fill="#FF8A8A">FAIL</text>
+  <text x="118" y="139" font-family="ui-monospace,monospace" font-size="17" fill="#E7F3EC">env-contract</text>
+  <text x="300" y="139" font-family="ui-monospace,monospace" font-size="15" fill="#8FA99D">环境变量契约 · behavioral</text>
+  <text x="620" y="139" font-family="ui-monospace,monospace" font-size="15" fill="#FF8A8A">缺变量仍然启动成功</text>
+
+  <!-- row 3: PASS -->
+  <rect x="30" y="160" width="70" height="26" rx="6" fill="#173A2A"/>
+  <text x="44" y="179" font-family="ui-monospace,monospace" font-size="15" fill="#CBF74E">PASS</text>
+  <text x="118" y="179" font-family="ui-monospace,monospace" font-size="17" fill="#E7F3EC">authz-default-deny</text>
+  <text x="300" y="179" font-family="ui-monospace,monospace" font-size="15" fill="#8FA99D">权限默认拒绝 · adversarial</text>
+  <text x="620" y="179" font-family="ui-monospace,monospace" font-size="15" fill="#CBF74E">未知路由 404 · 无凭证 401</text>
+
+  <!-- row 4: NA -->
+  <rect x="30" y="200" width="70" height="26" rx="6" fill="#2A2A1A"/>
+  <text x="44" y="219" font-family="ui-monospace,monospace" font-size="15" fill="#E8C45A">N/A</text>
+  <text x="118" y="219" font-family="ui-monospace,monospace" font-size="17" fill="#E7F3EC">health-probe</text>
+  <text x="300" y="219" font-family="ui-monospace,monospace" font-size="15" fill="#8FA99D">健康检查 · behavioral</text>
+  <text x="620" y="219" font-family="ui-monospace,monospace" font-size="15" fill="#E8C45A">[待配置] 生产模式下端点 404</text>
+
+  <!-- divider -->
+  <line x1="34" y1="252" x2="1166" y2="252" stroke="#24443A"/>
+
+  <!-- evidence lines -->
+  <text x="52" y="284" font-family="ui-monospace,monospace" font-size="15" fill="#6F8C80">· 删掉 11 个声明变量后，项目在 8s 内仍然启动成功</text>
+  <text x="52" y="312" font-family="ui-monospace,monospace" font-size="15" fill="#6F8C80">· GET /__vibe_probe_nonexistent__ → 404</text>
+  <text x="52" y="340" font-family="ui-monospace,monospace" font-size="15" fill="#6F8C80">· 无凭证访问 /api/teachers → 404（未鉴权时路由不可见）</text>
+
+  <!-- summary -->
+  <text x="34" y="384" font-family="ui-monospace,monospace" font-size="16" fill="#E7F3EC">通过 3  未通过 3  不适用 1  ·  rigor 均分 7.8/10</text>
+  <rect x="812" y="362" width="354" height="30" rx="8" fill="#173A2A"/>
+  <text x="828" y="383" font-family="ui-monospace,monospace" font-size="15" fill="#CBF74E">默认只报告 · 加 --strict 才当门禁</text>
+</svg>

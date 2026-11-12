@@ -2,11 +2,12 @@ id: migration-discipline
 title: 数据迁移纪律
 since: 0.0.1
 levels: [L2, L3]
-rigor: static          # TODO(C 阶段): 升到 behavioral，真起库验 _migrations 表
+rigor: behavioral          # 配了 dbPath 就真的打开库验 _migrations；没配则标「待配置」
 weight: 3
 
 needs:
   facts: [migrations]
+  config: [dbPath]
 
 probe:
   steps:
