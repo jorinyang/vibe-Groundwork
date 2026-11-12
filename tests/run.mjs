@@ -151,6 +151,33 @@ def upgrade():
     },
   },
   {
+    name: 'bad · 部署散成一堆一次性脚本',
+    files: {
+      'AGENTS.md': '# A\n\n## 怎么跑\nnode a.mjs\n\n## 目录\n| a | b |\n\n## 不许做\n- x\n',
+      'README.md': '# a\n\n```\nnode a.mjs\n```\n',
+      'a.mjs': 'console.log(1)\n',
+      'deploy/apply-menu.sh': 'echo deploy\n',
+      'deploy/apply-print.sh': 'echo deploy\n',
+      'deploy/apply-report.sh': 'echo deploy\n',
+      'deploy/apply-import.sh': 'echo deploy\n',
+      'deploy/apply-export.sh': 'echo deploy\n',
+      'deploy/apply-aging.sh': 'echo deploy\n',
+      'deploy/apply-audit.sh': 'echo deploy\n',
+    },
+    expect: { 'deploy-discipline': 'fail' },
+    expectRuleFail: { 'deploy-discipline': 'no-oneshot-crowd' },
+  },
+  {
+    name: 'na · 仓库型项目没有部署痕迹',
+    files: {
+      'AGENTS.md': '# A\n\n## 怎么跑\nnpm test\n\n## 目录\n| a | b |\n\n## 不许做\n- x\n',
+      'README.md': '# a\n\n```\nnpm test\n```\n',
+      'src/index.mjs': 'export const a = 1\n',
+    },
+    expect: { 'deploy-discipline': 'na' },
+    expectNaKind: { 'deploy-discipline': 'not-applicable' },
+  },
+  {
     name: 'na · 纯静态站，不碰数据库',
     files: {
       'AGENTS.md': '# A\n\n## 怎么跑\nopen index.html\n\n## 目录\n\n## 不许做\n',
@@ -207,6 +234,17 @@ for (const c of CASES) {
       const hit = got?.rules.find((r) => r.rule === rule)
       if (!hit) problems.push(`${id}.${rule}: 规则没有出现`)
       else if (hit.status === 'fail') problems.push(`${id}.${rule}: 期望通过，实际失败 — ${hit.message}`)
+    }
+  }
+
+  for (const [id, kind] of Object.entries(c.expectNaKind ?? {})) {
+    const got = byId.get(id)
+    const naRules = got?.rules.filter((r) => r.status === 'na') ?? []
+    const hit = naRules.find((r) => r.naKind === kind)
+    if (!hit) {
+      problems.push(
+        `${id}: 期望有 naKind=${kind} 的规则，实际 ${naRules.map((r) => r.naKind ?? r.rule).join(',') || '无 na'}`,
+      )
     }
   }
 

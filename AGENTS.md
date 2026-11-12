@@ -9,12 +9,13 @@
 ## 怎么跑
 
 ```bash
-node src/cli.ts list                 # 能力清单
-node src/cli.ts check --path <项目>   # 体检
-node tests/run.mjs                   # 正反测试（也是本仓库的快检）
+npm ci && npm run build             # 首次
+node bin/vibe.mjs list              # 能力清单（七项）
+node bin/vibe.mjs check --path <项目>  # 体检，默认不阻断
+node tests/run.mjs                  # 正反测试（也是本仓库的快检）
 ```
 
-Node ≥ 22.6，直接跑 `.ts`，无构建、零依赖。
+Node ≥ 22.6。源码是 `.ts`，本地可直接 `node src/cli.ts`；`bin/` 与 `dist/` 走编译产物。
 
 ## 三条铁律
 

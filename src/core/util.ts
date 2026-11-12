@@ -1,5 +1,5 @@
 /** 最小工具集：YAML 子集解析、文件遍历、路径处理。零依赖。 */
-import { readdir, readFile } from 'node:fs/promises'
+import { readdir, readFile, stat } from 'node:fs/promises'
 import { join, basename, extname } from 'node:path'
 
 export const SKIP_DIRS = new Set([
@@ -51,7 +51,7 @@ export async function readText(p: string): Promise<string | null> {
 
 export async function exists(p: string): Promise<boolean> {
   try {
-    await readdir(p)
+    await stat(p)
     return true
   } catch {
     return false

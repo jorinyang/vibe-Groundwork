@@ -4,12 +4,14 @@ import type { ProjectFacts } from '../facts/project.ts'
 import type { EnvFacts } from '../facts/env.ts'
 import type { RouteFacts } from '../facts/routes.ts'
 import type { MigrationFacts } from '../facts/migrations.ts'
+import type { DeployFacts } from '../facts/deploy.ts'
 
 export type FactsBag = {
   project: ProjectFacts
   env: EnvFacts
   routes: RouteFacts
   migrations: MigrationFacts
+  deploy: DeployFacts
 }
 
 export type HttpResult = {
@@ -48,5 +50,5 @@ export type CheckImpl = {
     weight: number
     risk: 'green' | 'yellow' | 'red'
   }
-  run: (ctx: CheckContext) => Promise<{ status: 'pass' | 'fail' | 'na'; rules: import('./types.ts').Finding[] }>
+  run: (ctx: CheckContext) => Promise<{ status: import('./types.ts').Status; rules: import('./types.ts').Finding[] }>
 }

@@ -8,20 +8,29 @@ on:
 jobs:
   conformance:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: ['22', '24']
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: ${{ matrix.node }}
+      - name: 安装依赖
+        run: npm ci
+      - name: 构建（npx 入口依赖 dist）
+        run: npm run build
       - name: 判定器正反测试
         run: node tests/run.mjs
-      - name: 用自己体检自己
-        run: node src/cli.ts check --path . --no-behavioral --json > selfcheck.json
+      - name: 用自己体检自己（严格模式）
+        run: node bin/vibe.mjs check --path . --no-behavioral --strict --json > selfcheck.json
       - name: 体检报告留档
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: selfcheck
+          name: selfcheck-node${{ matrix.node }}
           path: selfcheck.json
       - name: 能力清单必须可枚举
-        run: node src/cli.ts list
+        run: node bin/vibe.mjs list
+      - name: 打包内容必须完整
+        run: npm pack --dry-run

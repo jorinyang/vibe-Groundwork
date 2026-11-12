@@ -20,6 +20,15 @@ export type Finding = {
   weight: number
   message: string
   evidence: string[]
+  /**
+   * 仅 status=na 时有意义。
+   * - not-applicable：项目根本不需要这项能力（不碰数据库、没有 HTTP 服务）
+   * - not-configured：需要配置/环境才能判定，配好之后可以验
+   * 这两者混为一谈，用户就会以为「全绿」。
+   */
+  naKind?: 'not-applicable' | 'not-configured'
+  /** not-configured 时给出的具体配置指引 */
+  howToEnable?: string
 }
 
 export type CheckMeta = {
@@ -43,7 +52,7 @@ export type CheckOutcome = {
 
 export type VibConfig = {
   name: string
-  stack: 'node' | 'python' | 'unknown'
+  stack: 'node' | 'python' | 'go' | 'ruby' | 'rust' | 'java' | 'unknown'
   level: Level
   /** 启动命令，行为判定需要 */
   start?: { command: string; cwd?: string }

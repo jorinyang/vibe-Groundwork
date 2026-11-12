@@ -41,6 +41,14 @@ capabilities:
     risk: green
     dir: capabilities/04-health-probe
 
+  - id: deploy-discipline
+    title: 部署纪律
+    since: 0.2.0
+    levels: [L2, L3]
+    rigor: static
+    risk: yellow
+    dir: capabilities/07-deploy-discipline
+
   - id: migration-discipline
     title: 数据迁移纪律
     since: 0.0.1

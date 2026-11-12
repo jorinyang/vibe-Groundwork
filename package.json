@@ -1,19 +1,56 @@
 {
-  "name": "vibe-check",
-  "version": "0.1.0",
-  "private": false,
-  "type": "module",
+  "name": "vibe-groundwork",
+  "version": "0.2.0",
   "description": "Engineering conformance substrate for vibecoded projects: checks, prescriptions, agent protocol",
+  "type": "module",
   "bin": {
-    "vibe": "./src/cli.ts",
-    "vibe-mcp": "./src/mcp/server.ts"
+    "vibe": "bin/vibe.mjs",
+    "vibe-check": "bin/vibe.mjs",
+    "vibe-mcp": "bin/vibe-mcp.mjs"
   },
+  "files": [
+    "bin/",
+    "dist/",
+    "capabilities/",
+    "templates/",
+    "vibe.spec.yaml",
+    "AGENTS.md",
+    "README.md",
+    "LICENSE",
+    "docs/CONFORMANCE.md",
+    "docs/HOW-AGENT-WORKS.md",
+    "docs/REPORT-validation.md"
+  ],
   "scripts": {
-    "check": "node src/cli.ts check",
-    "list": "node src/cli.ts list",
-    "mcp": "node src/mcp/server.ts",
-    "selfcheck": "node src/cli.ts check --path . --no-behavioral"
+    "build": "tsc -p tsconfig.build.json",
+    "prepare": "npm run build",
+    "check": "node bin/vibe.mjs check",
+    "list": "node bin/vibe.mjs list",
+    "mcp": "node bin/vibe-mcp.mjs",
+    "test": "node tests/run.mjs",
+    "selfcheck": "node bin/vibe.mjs check --path . --no-behavioral"
   },
-  "engines": { "node": ">=22.6" },
-  "license": "MIT"
+  "engines": {
+    "node": ">=22.6"
+  },
+  "keywords": [
+    "ai",
+    "vibecoding",
+    "engineering",
+    "conformance",
+    "agent",
+    "mcp",
+    "ci",
+    "quality-gate"
+  ],
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "typescript": "^5.9.3"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jorinyang/vibe-Groundwork.git"
+  },
+  "homepage": "https://github.com/jorinyang/vibe-Groundwork"
 }

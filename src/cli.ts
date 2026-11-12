@@ -32,6 +32,7 @@ type Args = {
   only?: string[]
   json: boolean
   apply: boolean
+  strict: boolean
   noBehavioral: boolean
   allowRisk: Risk
   level: Level
@@ -44,6 +45,7 @@ function parseArgs(argv: string[]): Args {
     positional: [],
     json: false,
     apply: false,
+    strict: false,
     noBehavioral: false,
     allowRisk: 'green',
     level: 'L2',
@@ -55,6 +57,7 @@ function parseArgs(argv: string[]): Args {
     else if (a === '--only') out.only = argv[++i].split(',')
     else if (a === '--json') out.json = true
     else if (a === '--apply') out.apply = true
+    else if (a === '--strict') out.strict = true
     else if (a === '--no-behavioral') out.noBehavioral = true
     else if (a === '--allow-risk') out.allowRisk = argv[++i] as Risk
     else if (a === '--level') out.level = argv[++i] as Level
@@ -84,7 +87,13 @@ async function cmdCheck(args: Args) {
   })
   console.log(args.json ? renderJson(result) : renderHuman(result))
   const bad = result.summary.failed > 0
-  process.exit(bad ? 1 : 0)
+  // 默认不阻断：第一次运行只让人看见问题。
+  // 要拿它当门禁，显式加 --strict（CI 里用）。
+  if (bad && !args.strict && !args.json) {
+    console.log('')
+    console.log('（未阻断：默认只报告。要当门禁用，加 --strict）')
+  }
+  process.exit(bad && args.strict ? 1 : 0)
 }
 
 function cmdList() {

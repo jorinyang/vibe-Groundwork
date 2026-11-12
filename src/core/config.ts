@@ -92,11 +92,48 @@ async function inferFromFiles(root: string): Promise<Partial<VibConfig> | null> 
   return out
 }
 
+async function inferFromGo(root: string): Promise<Partial<VibConfig> | null> {
+  const mod = await readText(join(root, 'go.mod'))
+  if (!mod) return null
+  const hasLint = (await readText(join(root, '.golangci.yml'))) || (await readText(join(root, '.golangci.yaml')))
+  return {
+    stack: 'go',
+    name: (/^module\s+(\S+)/m.exec(mod)?.[1] ?? '').split('/').pop() || undefined,
+    fastcheck: hasLint ? ['golangci-lint run ./...'] : ['go vet ./...'],
+    start: undefined,
+    healthPath: '/health',
+  }
+}
+
+async function inferFromRuby(root: string): Promise<Partial<VibConfig> | null> {
+  const gemfile = await readText(join(root, 'Gemfile'))
+  const gemspec = (await walk(root)).find((f) => f.endsWith('.gemspec'))
+  if (!gemfile && !gemspec) return null
+  const hasRubocop = (await readText(join(root, '.rubocop.yml'))) || (await readText(join(root, '.rubocop.yaml')))
+  return {
+    stack: 'ruby',
+    fastcheck: hasRubocop ? ['bundle exec rubocop'] : [],
+    healthPath: '/health',
+  }
+}
+
+async function inferFromRust(root: string): Promise<Partial<VibConfig> | null> {
+  const cargo = await readText(join(root, 'Cargo.toml'))
+  if (!cargo) return null
+  return { stack: 'rust', fastcheck: ['cargo check'], healthPath: '/health' }
+}
+
 export async function loadConfig(root: string): Promise<VibConfig> {
   let cfg: VibConfig = { ...DEFAULT_CONFIG }
 
   const inferred =
-    (await inferFromPackage(root)) ?? (await inferFromPython(root)) ?? (await inferFromFiles(root)) ?? {}
+    (await inferFromPackage(root)) ??
+    (await inferFromPython(root)) ??
+    (await inferFromGo(root)) ??
+    (await inferFromRuby(root)) ??
+    (await inferFromRust(root)) ??
+    (await inferFromFiles(root)) ??
+    {}
   cfg = { ...cfg, ...inferred }
 
   const vibTxt = await readText(join(root, '.vibe/config.yaml'))

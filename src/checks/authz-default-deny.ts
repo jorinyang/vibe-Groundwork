@@ -23,6 +23,7 @@ export async function run(ctx: CheckContext): Promise<{ status: Status; rules: F
     rule: 'routes-discovered',
     status: rc.routes.length > 0 ? 'pass' : 'na',
     weight: 2,
+    naKind: rc.routes.length > 0 ? undefined : 'not-applicable',
     message:
       rc.routes.length > 0
         ? `抽取到 ${rc.routes.length} 条路由（${rc.framework ?? '未知框架'}）`
@@ -64,8 +65,18 @@ export async function run(ctx: CheckContext): Promise<{ status: Status; rules: F
       rule: 'behavioral-probe',
       status: 'na',
       weight: 0,
+      naKind: 'not-configured',
       message: `无法启动项目，跳过越权探针：${boot.error ?? '未知原因'}`,
       evidence: [],
+      howToEnable: [
+        '在项目根目录的 .vibe/config.yaml 里补上启动与就绪配置：',
+        '  start:',
+        '    command: "npm start"',
+        '  ready:',
+        '    url: "http://127.0.0.1:3000/api/health"',
+        '  protectedPath: "/api/users"   # 任选一条应当需要登录的接口',
+        '配好后会真的尝试越权访问，而不是只做静态判断。',
+      ].join('\n'),
     })
     const failedStatic = rules.filter((r) => r.status === 'fail')
     return { status: failedStatic.length ? 'fail' : 'na', rules }

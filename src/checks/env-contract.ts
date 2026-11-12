@@ -24,6 +24,7 @@ export async function run(ctx: CheckContext): Promise<{ status: Status; rules: F
       rule: 'na-no-env',
       status: 'na',
       weight: 0,
+      naKind: 'not-applicable',
       message: '项目不读取任何环境变量，本能力不适用',
       evidence: [],
     })
@@ -42,20 +43,34 @@ export async function run(ctx: CheckContext): Promise<{ status: Status; rules: F
   })
 
   if (f.exampleFile) {
-    rules.push({
-      check: meta.id,
-      rule: 'declared-covers-used',
-      status: f.missing.length === 0 ? 'pass' : 'fail',
-      weight: 3,
-      message:
-        f.missing.length === 0
-          ? `代码读取的 ${new Set(f.used.map((u) => u.name)).size} 个变量全部已声明`
-          : `有 ${f.missing.length} 个变量被代码读取但没在模板里声明`,
-      evidence: f.missing.slice(0, 8).map((n) => {
-        const where = f.used.find((u) => u.name === n)?.file
-        return where ? `${n}  (${where})` : n
-      }),
-    })
+    // 模板有变量、代码里一个都没识别到 —— 不是通过，是「这个语言的读取方式还不支持」
+    if (f.used.length === 0 && f.declared.length > 0) {
+      rules.push({
+        check: meta.id,
+        rule: 'declared-covers-used',
+        status: 'na',
+        weight: 0,
+        naKind: 'not-configured',
+        message: `模板声明了 ${f.declared.length} 个变量，但没识别到代码里的读取（该语言的读取方式可能还不在支持范围）`,
+        evidence: f.declared.slice(0, 6),
+        howToEnable: '当前支持 JS/TS、Python、Go、Ruby、Java、Rust 的常见读取写法；其他语言需要补 Facts 适配器',
+      })
+    } else {
+      rules.push({
+        check: meta.id,
+        rule: 'declared-covers-used',
+        status: f.missing.length === 0 ? 'pass' : 'fail',
+        weight: 3,
+        message:
+          f.missing.length === 0
+            ? `代码读取的 ${new Set(f.used.map((u) => u.name)).size} 个变量全部已声明`
+            : `有 ${f.missing.length} 个变量被代码读取但没在模板里声明`,
+        evidence: f.missing.slice(0, 8).map((n) => {
+          const where = f.used.find((u) => u.name === n)?.file
+          return where ? `${n}  (${where})` : n
+        }),
+      })
+    }
   }
 
   rules.push({

@@ -1,0 +1,29 @@
+id: deploy-discipline.fix
+risk: yellow
+requires_snapshot: true
+max_attempts: 1
+human_gate: true          # 部署流程改动必须人确认
+
+steps:
+  - id: 1
+    when: rule deploy-documented
+    why: 先补一份部署文档，把「现在实际怎么发版」写下来——通常是发现债的第一步
+    action: patch-instruction
+    target: docs/DEPLOY.md（新建）
+    # 内容需要人写，工具只出提纲
+
+  - id: 2
+    when: rule reproducible-entry
+    why: 把散落的执行步骤收敛成一个 deploy 入口（脚本或 Makefile target）
+    action: patch-instruction
+    target: 收敛目标是「一条命令」，不是「一个更长的脚本」
+
+  - id: 3
+    when: rule no-oneshot-crowd
+    why: 逐个判断一次性脚本：是数据变更 → 搬进迁移；是配置变更 → 写进部署入口；是临时调试 → 删掉
+    action: patch-instruction
+    target: 不自动删除任何脚本
+
+notes:
+  - 本能力的处方全部是说明，不含自动执行动作
+  - 部署流程改动一旦自动执行，出错时可能连回滚都发不出去

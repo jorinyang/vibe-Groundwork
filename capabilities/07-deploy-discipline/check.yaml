@@ -1,0 +1,27 @@
+id: deploy-discipline
+title: 部署纪律
+since: 0.2.0
+levels: [L2, L3]
+rigor: static
+weight: 3
+
+needs:
+  facts: [deploy]
+
+probe:
+  steps:
+    - id: reproducible-entry
+      type: fact
+      expect: { deploy.entry: "!= null" }
+    - id: no-oneshot-crowd
+      type: fact
+      expect: { deploy.oneShotScripts: "length <= 5" }
+    - id: rollback-path
+      type: fact
+      expect: { deploy.rollback.found: true }   # 或 deploy.containerized: true
+    - id: deploy-documented
+      type: fact
+      expect: { deploy.documented: true }
+
+pass_when: all_steps_pass
+prescription: prescription.yaml

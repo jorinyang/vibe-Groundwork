@@ -25,6 +25,7 @@ export async function run(ctx: CheckContext): Promise<{ status: Status; rules: F
     rule: 'na-database',
     status: f.hasDatabase ? 'pass' : 'na',
     weight: 0,
+    naKind: f.hasDatabase ? undefined : 'not-applicable',
     message: f.hasDatabase
       ? '项目存在数据库痕迹，进入迁移纪律判定'
       : '未发现任何数据库痕迹，本能力不适用',

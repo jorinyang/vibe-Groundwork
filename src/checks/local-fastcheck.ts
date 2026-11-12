@@ -46,8 +46,10 @@ export async function run(ctx: CheckContext): Promise<{ status: Status; rules: F
       rule: 'deps-installed',
       status: 'na',
       weight: 0,
+      naKind: 'not-configured',
       message: '未安装依赖（无 node_modules），跳过执行。先 `npm ci` 再跑本项',
       evidence: ['node_modules 不存在'],
+      howToEnable: '在项目根目录执行 `npm ci`（或 pnpm i / yarn），然后重跑本检查',
     })
     return { status: 'na', rules }
   }
@@ -59,18 +61,26 @@ export async function run(ctx: CheckContext): Promise<{ status: Status; rules: F
 
     // 区分「闸门跑了但失败」和「闸门根本跑不起来」。
     // 后者是环境/依赖问题，判 N/A —— 判失败就是误报。
+    //
+    // Windows 中文环境下，cmd 的「命令不存在」提示是 GBK 字节被解成乱码，
+    // 靠英文关键字抓不到，所以补一条：输出很短且几乎全是替换字符 → 视为跑不起来。
+    const garbled = (res.output.match(/\uFFFD/g) ?? []).length
+    const looksLikeMissingBinary =
+      garbled >= 2 && res.output.length < 500 && res.code !== 0
     const cannotRun =
       /not recognized|不是内部或外部命令|command not found|Cannot find module|MODULE_NOT_FOUND|No such file or directory/i.test(
         res.output,
-      )
+      ) || looksLikeMissingBinary
     if (cannotRun) {
       rules.push({
         check: meta.id,
         rule: 'toolchain-available',
         status: 'na',
         weight: 0,
+        naKind: 'not-configured',
         message: `命令跑不起来（工具链缺失），跳过：「${cmd}」`,
         evidence: res.output.slice(-300).split('\n').slice(-4),
+        howToEnable: '先完成依赖安装（如 `npm ci`），确认命令里用到的工具已装好',
       })
       continue
     }

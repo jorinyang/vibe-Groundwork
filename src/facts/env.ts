@@ -19,6 +19,16 @@ const USAGE_PATTERNS = [
   /os\.environ\.get\(\s*["']([A-Z][A-Z0-9_]{1,})["']/g,
   /os\.getenv\(\s*["']([A-Z][A-Z0-9_]{1,})["']/g,
   /import\.meta\.env\.([A-Z][A-Z0-9_]{1,})/g,
+  // Go
+  /os\.Getenv\(\s*"([A-Z][A-Z0-9_]{1,})"/g,
+  /os\.LookupEnv\(\s*"([A-Z][A-Z0-9_]{1,})"/g,
+  // Ruby
+  /ENV\[\s*["']([A-Z][A-Z0-9_]{1,})["']\s*\]/g,
+  /ENV\.fetch\(\s*["']([A-Z][A-Z0-9_]{1,})["']/g,
+  // Java / Kotlin
+  /System\.getenv\(\s*"([A-Z][A-Z0-9_]{1,})"/g,
+  // Rust
+  /env::var\(\s*"([A-Z][A-Z0-9_]{1,})"/g,
 ]
 
 const EXAMPLE_CANDIDATES = ['.env.example', '.env.sample', '.env.template', 'env.example']

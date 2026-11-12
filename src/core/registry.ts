@@ -4,6 +4,7 @@ import * as constitution from '../checks/project-constitution.ts'
 import * as envContract from '../checks/env-contract.ts'
 import * as localFastcheck from '../checks/local-fastcheck.ts'
 import * as migration from '../checks/migration-discipline.ts'
+import * as deploy from '../checks/deploy-discipline.ts'
 import * as health from '../checks/health-probe.ts'
 import * as authz from '../checks/authz-default-deny.ts'
 
@@ -13,6 +14,7 @@ export const CHECKS: CheckImpl[] = [
   envContract,
   localFastcheck,
   migration,
+  deploy,
   health,
   authz,
 ]

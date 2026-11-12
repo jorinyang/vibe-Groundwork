@@ -27,6 +27,7 @@ export async function run(ctx: CheckContext): Promise<{ status: Status; rules: F
       rule: 'na-no-http-server',
       status: 'na',
       weight: 0,
+      naKind: 'not-applicable',
       message: '未发现 HTTP 路由，本能力不适用',
       evidence: [],
     })
@@ -51,8 +52,19 @@ export async function run(ctx: CheckContext): Promise<{ status: Status; rules: F
       rule: 'behavioral-probe',
       status: 'na',
       weight: 0,
+      naKind: 'not-configured',
       message: `无法启动项目，跳过健康探针：${boot.error ?? '未知原因'}`,
       evidence: [],
+      howToEnable: [
+        '在项目根目录的 .vibe/config.yaml 里补上启动与就绪配置：',
+        '  start:',
+        '    command: "npm start"        # 实际启动命令',
+        '    cwd: "apps/api"             # 可选，子目录启动',
+        '  ready:',
+        '    url: "http://127.0.0.1:3000/api/health"',
+        '    timeoutMs: 20000',
+        '配好后本能力会真正起服务打请求，不再跳过。',
+      ].join('\n'),
     })
     return { status: 'na', rules }
   }

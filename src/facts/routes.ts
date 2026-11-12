@@ -23,10 +23,10 @@ const DECORATOR_RE = new RegExp(
 )
 const HEALTH_RE = /\/(health|healthz|ready|readiness|live|alive|ping)\b/i
 const AUTH_HINT_RE =
-  /\b(requireAuth|requireLogin|authenticate|isAuthenticated|authGuard|verifyToken|verifyJwt|jwtMiddleware|ensureAuth|loginRequired)\b/
+  /\b(requireAuth|requireLogin|requireUser|authenticate|isAuthenticated|authGuard|verifyToken|verifyJwt|jwtMiddleware|ensureAuth|loginRequired|sessionUser|publicUser|currentUser|getSession|readSession|verifySession|login_required|require_login|auth_required|jwt_required|current_user)\b|req\.user\s*=|preHandler|preValidation/
 const MIDDLEWARE_RE = /\b(?:app|router|server)\.use\(\s*([A-Za-z_$][\w$]*)/g
 const SPA_FALLBACK_RE =
-  /\.get\(\s*["'`]\*["'`]|app\.use\(\s*\(\s*(?:req|request)\s*,\s*(?:res|response)\s*\)\s*=>[^)]*sendFile|sendFile\([^)]*index\.html/
+  /\.get\(\s*["'`]\*["'`]|app\.use\(\s*\(\s*(?:req|request)\s*,\s*(?:res|response)\s*\)\s*=>[^)]*sendFile|sendFile\([^)]*index\.html|setNotFoundHandler\s*\([\s\S]{0,200}?(?:sendFile\s*\(|index\.html)/
 /** 任何文件里出现的健康端点字面量 */
 const HEALTH_LITERAL_RE =
   /["'`]([^"'`\s]*\/(?:health|healthz|ready|readiness|live|alive|ping))["'`]/gi
@@ -48,8 +48,10 @@ export async function collectRouteFacts(root: string): Promise<RouteFacts> {
   for (const f of files) {
     const r = rel(root, f)
     if (isTestPath(r)) continue
-    const txt = await readText(f)
-    if (!txt) continue
+    const raw = await readText(f)
+    if (!raw) continue
+    // 注释里写示例代码很常见（`app.get('/x')`），那不是真路由
+    const txt = raw.replace(/^\s*(?:\/\/|\*|\/\*|#).*$/gm, '')
 
     for (const re of [EXPRESS_RE, DECORATOR_RE]) {
       re.lastIndex = 0

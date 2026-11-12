@@ -9,6 +9,7 @@ import { collectProjectFacts } from '../facts/project.ts'
 import { collectEnvFacts } from '../facts/env.ts'
 import { collectRouteFacts } from '../facts/routes.ts'
 import { collectMigrationFacts } from '../facts/migrations.ts'
+import { collectDeployFacts } from '../facts/deploy.ts'
 import { selectChecks } from './registry.ts'
 
 export type RunResult = {
@@ -19,6 +20,8 @@ export type RunResult = {
     passed: number
     failed: number
     na: number
+    naNotApplicable: number
+    naNotConfigured: number
     error: number
     rigorScore: number
     failedRules: number
@@ -70,6 +73,7 @@ export async function runProject(opts: RunOptions): Promise<RunResult> {
     env: await collectEnvFacts(target, config.envExample),
     routes: await collectRouteFacts(target),
     migrations: await collectMigrationFacts(target),
+    deploy: await collectDeployFacts(target),
   }
 
   // 行为探针：boot 懒启动，整轮只启动一次
@@ -142,6 +146,9 @@ export async function runProject(opts: RunOptions): Promise<RunResult> {
   const passed = outcomes.filter((o) => o.status === 'pass').length
   const failed = outcomes.filter((o) => o.status === 'fail').length
   const na = outcomes.filter((o) => o.status === 'na').length
+  const naRules = outcomes.flatMap((o) => o.rules).filter((r) => r.status === 'na')
+  const naNotConfigured = naRules.filter((r) => r.naKind === 'not-configured').length
+  const naNotApplicable = naRules.filter((r) => r.naKind === 'not-applicable').length
   const error = outcomes.filter((o) => o.status === 'error').length
   const failedRules = outcomes.flatMap((o) => o.rules).filter((r) => r.status === 'fail').length
 
@@ -166,6 +173,6 @@ export async function runProject(opts: RunOptions): Promise<RunResult> {
     target,
     config,
     outcomes,
-    summary: { passed, failed, na, error, rigorScore, failedRules },
+    summary: { passed, failed, na, naNotApplicable, naNotConfigured, error, rigorScore, failedRules },
   }
 }

@@ -1,7 +1,9 @@
 node_modules/
+# 构建产物不进库：发布前由 prepare / npm run build 生成
 dist/
 # .vibe 里只保留 config.yaml，快照与缓存不进库
 .vibe/*
 !.vibe/config.yaml
 *.log
+*.tgz
 .DS_Store
